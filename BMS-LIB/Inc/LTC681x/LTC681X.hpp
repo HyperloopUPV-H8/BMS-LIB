@@ -7,20 +7,22 @@
 
 #pragma once
 
+#define DAISY_CHAIN_LENGTH 6
+
 #include "ST-LIB.hpp"
 
 class LTC681X {
 public:
 	LTC681X(uint8_t spi_instance);
 
+	void wake_up();
 	void send_command(uint8_t command[2]);
 
 private:
 	uint8_t spi_instance;
 	static uint16_t crc15Table[256];
 
-	uint16_t calculate_pec15(uint8_t len, uint8_t* data);
-
+	uint16_t calculate_pec15(uint8_t *data, uint8_t len);
 
 
 };

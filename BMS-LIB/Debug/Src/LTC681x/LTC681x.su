@@ -1,6 +1,0 @@
-c:\st\stm32cubeide_1.10.1\stm32cubeide\plugins\com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.10.3-2021.10.win32_1.0.0.202111181127\tools\bin\../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/include/c++/10.3.1/arm-none-eabi/thumb/v7e-m+dp/hard/bits/gthr-default.h:229:1:int __gthread_key_delete(__gthread_key_t)	16	static
-C:/Users/aleja/Proyectos/Hyper-H8/ST-LIB/Inc/HALAL/Models/Packets/RawPacket.hpp:70:5:RawPacket::~RawPacket()	16	static
-../Src/LTC681x/LTC681x.cpp:10:1:LTC681X::LTC681X(uint8_t)	16	static
-../Src/LTC681x/LTC681x.cpp:14:6:void LTC681X::send_command(uint8_t*)	32	static
-../Src/LTC681x/LTC681x.cpp:30:10:uint16_t LTC681X::calculate_pec15(uint8_t, uint8_t*)	32	static
-C:/Users/aleja/Proyectos/Hyper-H8/ST-LIB/Inc/HALAL/Models/Packets/RawPacket.hpp:60:5:RawPacket::RawPacket(Type*, uint32_t) [with Type = unsigned char]	24	static

@@ -1,5 +1,0 @@
-"./Drivers/CMSIS/Device/ST/STM32H7xx/Source/Templates/system_stm32h7xx.o"
-"./Src/BMS-LIB.o"
-"./Src/syscalls.o"
-"./Src/sysmem.o"
-"./Src/LTC681x/LTC681x.o"

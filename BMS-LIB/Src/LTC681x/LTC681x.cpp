@@ -45,7 +45,7 @@ void LTC681X::send_command(uint8_t command[2]) {
 
 	command_with_pec[0] = command[0];
 	command_with_pec[1] =  command[1];
-	pec = calculate_pec15(command);
+	pec = calculate_pec15(command, 2);
 	command_with_pec[2] = (uint8_t)(pec >> 8);
 	command_with_pec[3] = (uint8_t)(pec);
 
@@ -55,6 +55,22 @@ void LTC681X::send_command(uint8_t command[2]) {
 
 }
 
+void LTC681X::start_voltage_conversion_all_cells() {
+	uint8_t command[2];
+	command[0] = 0b00000010
+			| (ADC_MODE::NORMAL & 0b10);
+	command[1] = 0b01100000
+			| ((ADC_MODE::NORMAL & 0b1) << 7)
+			| (DISCHARGE::PERMITTED << 4)
+			| (CELL_SELECTION::ALL);
+
+	send_command(command);
+}
+
+void LTC681X::start_spi_communication() {
+	uint8_t command[2] = {0b00000111, 0b00100011};
+	send_command(command);
+}
 uint16_t LTC681X::calculate_pec15(uint8_t *data, uint8_t len) {
 	uint16_t remainder, addr;
 	remainder = 16;

@@ -6,6 +6,9 @@
  */
 
 #include "LTC681x/LTC681X.hpp"
+
+COMMAND LTC681X::voltage_registers[6] = {READ_CELL_VOLTAGE_REGISTER_A, READ_CELL_VOLTAGE_REGISTER_B, READ_CELL_VOLTAGE_REGISTER_C, READ_CELL_VOLTAGE_REGISTER_D, READ_CELL_VOLTAGE_REGISTER_E, READ_CELL_VOLTAGE_REGISTER_F};
+
 uint16_t LTC681X::crc15Table[256] = { 0x0,0xc599, 0xceab, 0xb32, 0xd8cf, 0x1d56, 0x1664, 0xd3fd, 0xf407, 0x319e, 0x3aac,  //!<precomputed CRC15 Table
 	0xff35, 0x2cc8, 0xe951, 0xe263, 0x27fa, 0xad97, 0x680e, 0x633c, 0xa6a5, 0x7558, 0xb0c1,
 	0xbbf3, 0x7e6a, 0x5990, 0x9c09, 0x973b, 0x52a2, 0x815f, 0x44c6, 0x4ff4, 0x8a6d, 0x5b2e,
@@ -30,6 +33,7 @@ uint16_t LTC681X::crc15Table[256] = { 0x0,0xc599, 0xceab, 0xb32, 0xd8cf, 0x1d56,
 	0x2d02, 0xa76f, 0x62f6, 0x69c4, 0xac5d, 0x7fa0, 0xba39, 0xb10b, 0x7492, 0x5368, 0x96f1, 0x9dc3,
 	0x585a, 0x8ba7, 0x4e3e, 0x450c, 0x8095
 };
+
 LTC681X::LTC681X(uint8_t spi_instance) : spi_instance(spi_instance) {
 	// deactivate watchdog timer?
 }
@@ -39,37 +43,79 @@ void LTC681X::wake_up() {
 	SPI::transmit_next_packet(spi_instance, dummy_packet);
 }
 
-void LTC681X::send_command(uint8_t command[2]) {
+void LTC681X::start_spi_communication() {
+	send_command(START_SPI_COMMUNICATION);
+}
+
+void LTC681X::send_command(COMMAND command) {
 	uint8_t command_with_pec[4];
 	uint16_t pec;
 
-	command_with_pec[0] = command[0];
-	command_with_pec[1] =  command[1];
-	pec = calculate_pec15(command, 2);
+	command_with_pec[0] = (uint8_t)(command >> 8);
+	command_with_pec[1] = (uint8_t)(command);
+	pec = calculate_pec15(command_with_pec, 2);
 	command_with_pec[2] = (uint8_t)(pec >> 8);
 	command_with_pec[3] = (uint8_t)(pec);
 
 	RawPacket packet  = RawPacket(command_with_pec, 4);
 	SPI::transmit_next_packet(spi_instance, packet);
-
-
 }
 
 void LTC681X::start_voltage_conversion_all_cells() {
-	uint8_t command[2];
-	command[0] = 0b00000010
-			| (ADC_MODE::NORMAL & 0b10);
-	command[1] = 0b01100000
-			| ((ADC_MODE::NORMAL & 0b1) << 7)
-			| (DISCHARGE::PERMITTED << 4)
-			| (CELL_SELECTION::ALL);
-
-	send_command(command);
+	send_command(START_VOLTAGE_CONVERSION_ALL_CELLS);
 }
 
-void LTC681X::start_spi_communication() {
-	uint8_t command[2] = {0b00000111, 0b00100011};
-	send_command(command);
+uint8_t LTC681X::check_adc_conversion_status() {
+	send_command(CHECK_ADC_CONVERSION_STATUS);
+
+	RawPacket adc_state = RawPacket(1);
+	SPI::receive_next_packet(spi_instance, adc_state);
+
+	return(adc_state.get_data()[0]);
+}
+
+void LTC681X::read_voltages(voltage_register_group cell_voltages_array[6]) {
+
+	//for (uint8_t voltage_register = 0; voltage_register < 6; cell_reg++) {
+	uint8_t count = 0;
+	for (COMMAND voltage_register : voltage_registers) {
+		cell_voltages_array[count++] = read_cell_voltage_register(voltage_register);
+
+// TODO: Check PEC
+//		for (int current_ic = 0; current_ic < total_ic; current_ic++) {
+//			pec_error += parse_cells(current_ic,cell_reg, cell_data, &ic[current_ic].cells.c_codes[0], &ic[c_ic].cells.pec_match[0]);
+//		}
+	}
+
+//	LTC681x_check_pec(total_ic, CELL, ic);
+}
+
+voltage_register_group LTC681X::read_cell_voltage_register(COMMAND voltage_register) {
+	const uint8_t REGISTER_LENGTH = 8; // Number of bytes in each ICs register + 2 bytes for the PEC
+
+	uint8_t command[2];
+	send_command(voltage_register);
+
+	RawPacket cell_codes = RawPacket(REGISTER_LENGTH);
+	SPI::receive_next_packet(spi_instance, cell_codes);
+	//TODO: Check PEC
+	uint8_t* voltage_data = cell_codes.get_data();
+
+	voltage_register_group voltages = {
+		voltage_data[0] + ((uint16_t)voltage_data[1] << 8),
+		voltage_data[2] + ((uint16_t)voltage_data[3] << 8),
+		voltage_data[4] + ((uint16_t)voltage_data[5] << 8)
+	};
+
+	return voltages;
+}
+
+void LTC681X::get_cell_voltages(voltage_register_group cell_voltages_array[REGISTER_GROUPS]) {
+	start_voltage_conversion_all_cells();
+
+	Time::set_timeout(2, [&]() {
+		read_voltages(cell_voltages_array);
+	});
 }
 uint16_t LTC681X::calculate_pec15(uint8_t *data, uint8_t len) {
 	uint16_t remainder, addr;

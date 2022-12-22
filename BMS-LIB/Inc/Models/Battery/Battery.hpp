@@ -7,6 +7,9 @@
 
 #pragma once
 
+#define CELLS 6
+#define MAXIMUM_DIFERENCE 0.01
+
 #include "ST-LIB.hpp"
 
 struct voltage_register_group {
@@ -16,15 +19,12 @@ struct voltage_register_group {
 };
 
 struct Battery {
-	uint16_t cell1;
-	uint16_t cell2;
-	uint16_t cell3;
-	uint16_t cell4;
-	uint16_t cell5;
-	uint16_t cell6;
+	uint16_t cells[CELLS];
 	uint16_t temperature1;
 	uint16_t temperature2;
 
 	Battery() = default;
 	Battery(voltage_register_group& cell_register1, voltage_register_group& cell_register2, uint16_t& temperature1, uint16_t& temperature2);
+
+	uint8_t balancing_algorithm();
 };

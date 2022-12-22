@@ -103,8 +103,12 @@ void BMSH::start_adc_conversion_temperatures() {
 }
 
 void BMSH::read_temperatures() {
-	read_voltage_register(READ_AUXILIARY_REGISTER_GROUP_A);
-	read_voltage_register(READ_AUXILIARY_REGISTER_GROUP_B);
+	voltage_register_group* temperatures_register1 = read_voltage_register(READ_AUXILIARY_REGISTER_GROUP_A);
+	voltage_register_group* temperatures_register2 = read_voltage_register(READ_AUXILIARY_REGISTER_GROUP_B);
+	for (int adc_number=0; adc_number<EXTERNAL_ADCS; adc_number++) {
+		external_adcs[adc_number].temperatures[0] = temperatures_register1[adc_number];
+		external_adcs[adc_number].temperatures[1] = temperatures_register2[adc_number];
+	}
 }
 
 void BMSH::update_temperatures() {

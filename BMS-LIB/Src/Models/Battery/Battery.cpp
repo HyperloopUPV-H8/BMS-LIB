@@ -20,37 +20,36 @@ Battery::Battery(voltage_register_group& voltage_register1, voltage_register_gro
 	temperature2 = temp2;
 }
 
-uint8_t Battery::balancing_algorithm() {
-	uint16_t max_value = cells[0];
-	uint16_t min_value = cells[0];
+bool Battery::needs_balance() {
+	uint16_t max_value = calculate_soc(cells[0]);
+	uint16_t min_value = calculate_soc(cells[0]);
 
 	for (uint8_t cell_number = 1; cell_number < CELLS; cell_number++) {
-		if (cells[cell_number] > max_value) {
+		uint16_t soc_value = calculate_soc(cells[cell_number]);
+		if (soc_value > max_value) {
 			max_value = cells[cell_number];
 		}
 
-		if (cells[cell_number] < min_value) {
+		if (soc_value < min_value) {
 			min_value = cells[cell_number];
 		}
-
-		float percentage_difference = ((float)max_value - min_value) / max_value;
-
-		if (not (percentage_difference > MAXIMUM_DIFERENCE)) {
-			return 0;
-		}
-
-		// balance
 	}
+
+	if (max_value - min_value > MAX_SOC_DIFFERENCE) {
+		return true;
+	}
+
+	return false;
 }
 
-uint8_t Battery::calculate_soc(uint16_t cell) {
+uint16_t Battery::calculate_soc(uint16_t cell) {
 	float real_voltage = (cell*5.0)/ 65535;
 
-	if (real_voltage > MAXIMUM_CELL_VOLTAGE or real_voltage < MINIMUM_CELL_VOLTAGE) {
+	if (real_voltage > MAX_CELL_VOLTAGE or real_voltage < MIN_CELL_VOLTAGE) {
 		//TODO: Error Handler
 		return 0;
 	}
 
-	uint16_t soc_index = (cell-MINIMUM_CELL_VOLTAGE)*1000;
+	uint16_t soc_index = (cell - MIN_CELL_VOLTAGE)*1000;
 	return soc[soc_index];
 }

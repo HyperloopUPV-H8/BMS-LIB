@@ -7,7 +7,7 @@
 
 #pragma once
 
-#define EXTERNAL_ADCS 5
+
 
 #include "ST-LIB.hpp"
 #include "LTC6811/LTC6811.hpp"
@@ -15,41 +15,38 @@
 
 
 class BMSH {
+private:
 	enum ADC_MODE {
 		FAST = 0b01,
 		NORMAL = 0b10,
 		FILTERED = 0b11
 	};
 	enum GPIO_SELECTION {
-		ALL = 0b000,
-		GPIO_1 = 0b001,
-		GPIO_2 = 0b010,
-		GPIO_3 = 0b011,
-		GPIO_4 = 0b100,
-		GPIO_5 = 0b101,
-		SECOND_REFERENCE = 0b110
-	};
+			ALL = 0b000,
+			GPIO_1 = 0b001,
+			GPIO_2 = 0b010,
+			GPIO_3 = 0b011,
+			GPIO_4 = 0b100,
+			GPIO_5 = 0b101,
+			SECOND_REFERENCE = 0b110
+		};
 	enum DISCHARGE {
-		NOT_PERMITTED = 0,
-		PERMITTED = 1
-	};
-	enum VOLTAGE_REGISTER_COMMAND : uint8_t {
-		A = 0b0100,
-		B = 0b0110,
-		C = 0b1000,
-		D = 0b1010,
-		E = 0b1001,
-		F = 0b1011
-	};
+			NOT_PERMITTED = 0,
+			PERMITTED = 1
+		};
+	static const uint8_t EXTERNAL_ADCS = 5;
+	static const uint8_t DATA_STREAM = LTC6811::COMMAND_DATA_LENGTH*EXTERNAL_ADCS;
+
+public:
 	enum COMMAND : uint16_t {
 		START_SPI_COMMUNICATION = 0b11100100011,
 
-		READ_CELL_VOLTAGE_REGISTER_A = A,
-		READ_CELL_VOLTAGE_REGISTER_B = B,
-		READ_CELL_VOLTAGE_REGISTER_C = C,
-		READ_CELL_VOLTAGE_REGISTER_D = D,
-		READ_CELL_VOLTAGE_REGISTER_E = E,
-		READ_CELL_VOLTAGE_REGISTER_F = F,
+		READ_CELL_VOLTAGE_REGISTER_A = 0b0100,
+		READ_CELL_VOLTAGE_REGISTER_B = 0b0110,
+		READ_CELL_VOLTAGE_REGISTER_C = 0b1000,
+		READ_CELL_VOLTAGE_REGISTER_D = 0b1010,
+		READ_CELL_VOLTAGE_REGISTER_E = 0b1001,
+		READ_CELL_VOLTAGE_REGISTER_F = 0b1011,
 
 		READ_AUXILIARY_REGISTER_GROUP_A = 0b00000001100,
 		READ_AUXILIARY_REGISTER_GROUP_B = 0b00000001110,
@@ -64,12 +61,20 @@ class BMSH {
 		START_ADC_CONVERSION_GPIO_5 = 0b10001100000 | (ADC_MODE::NORMAL << 7) | (GPIO_SELECTION::GPIO_5),
 	};
 
+private:
+	uint8_t spi_instance;
+	static COMMAND cell_voltage_registers[6];
+	voltage_register_group* read_voltage_register(COMMAND voltage_register);
+	LTC6811 external_adcs[EXTERNAL_ADCS];
+
 public:
+
 	BMSH(uint8_t spi_instance);
 
 	void wake_up();
 	void start_spi_communication();
 	void send_command(COMMAND command);
+	void send_command(COMMAND command, uint8_t data[DATA_STREAM]);
 
 	void start_adc_conversion_all_cells();
 	uint8_t check_adc_conversion_status();
@@ -80,9 +85,5 @@ public:
 	void read_temperatures();
 	void update_temperatures();
 
-private:
-	uint8_t spi_instance;
-	static COMMAND cell_voltage_registers[6];
-	voltage_register_group* read_voltage_register(COMMAND voltage_register);
-	LTC6811 external_adcs[EXTERNAL_ADCS];
+	void start_balancing();
 };

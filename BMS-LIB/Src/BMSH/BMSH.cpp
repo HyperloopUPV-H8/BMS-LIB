@@ -32,10 +32,34 @@ void BMSH::send_command(COMMAND command) {
 	command_with_pec[2] = (uint8_t)(pec >> 8);
 	command_with_pec[3] = (uint8_t)(pec);
 
-	RawPacket packet  = RawPacket(command_with_pec, 4);
+	RawPacket packet = RawPacket(command_with_pec, 4);
 	SPI::transmit_next_packet(spi_instance, packet);
 }
 
+void BMSH::send_command(COMMAND command, uint8_t data[DATA_STREAM]) {
+	uint8_t command_with_pec_and_data[4+DATA_STREAM];
+	uint16_t pec;
+
+	command_with_pec_and_data[0] = (uint8_t)(command >> 8);
+	command_with_pec_and_data[1] = (uint8_t)(command);
+	pec = PEC15::calculate(command_with_pec_and_data, LTC6811::PEC_LENGTH);
+	command_with_pec_and_data[2] = (uint8_t)(pec >> 8);
+	command_with_pec_and_data[3] = (uint8_t)(pec);
+
+	uint8_t command_index = 4;
+	for (uint8_t external_adc=EXTERNAL_ADCS-1; external_adc >= 0; external_adc--) {
+		uint8_t register_position = LTC6811::DATA_REGISTER_LENGTH*external_adc;
+		for (uint8_t current_byte=0; current_byte < LTC6811::DATA_REGISTER_LENGTH; current_byte++) {
+			command_with_pec_and_data[command_index++] = data[register_position + current_byte];
+		}
+		uint16_t data_pec = PEC15::calculate(&data[register_position], LTC6811::PEC_LENGTH);
+		command_with_pec_and_data[command_index++] = (uint8_t)(data_pec >> 8);
+		command_with_pec_and_data[command_index++] = (uint8_t) data_pec;
+	}
+
+	RawPacket packet = RawPacket(command_with_pec_and_data, 4+DATA_STREAM);
+	SPI::transmit_next_packet(spi_instance, packet);
+}
 void BMSH::start_adc_conversion_all_cells() {
 	send_command(START_ADC_CONVERSION_ALL_CELLS);
 }
@@ -117,4 +141,11 @@ void BMSH::update_temperatures() {
 	Time::set_timeout(2, [&](){
 		read_temperatures();
 	});
+}
+
+void BMSH::start_balancing() {
+	uint8_t write_buffer[256];
+	for (LTC6811 external_adc : external_adcs) {
+
+	}
 }

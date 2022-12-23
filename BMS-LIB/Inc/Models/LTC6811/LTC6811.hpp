@@ -9,9 +9,6 @@
 
 #define REGISTER_GROUPS 4
 
-#define MINIMUM_CELL_VOLTAGE 3.6 // Ask Hardware
-#define MAXIMUM_CELL_VOLTAGE 4.2
-
 #include "ST-LIB.hpp"
 #include "Battery/Battery.hpp"
 

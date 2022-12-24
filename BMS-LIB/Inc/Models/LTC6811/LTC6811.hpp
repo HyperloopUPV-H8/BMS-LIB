@@ -9,13 +9,14 @@
 
 #include "ST-LIB.hpp"
 #include "Battery/Battery.hpp"
+#include "PEC15/PEC15.hpp"
 
 class LTC6811 {
 public:
 	static const uint8_t REGISTER_GROUPS = 4;
 	static const uint8_t DATA_REGISTER_LENGTH = 6;
-	static const uint8_t PEC_LENGTH = 2;
-	static const uint8_t COMMAND_DATA_LENGTH = DATA_REGISTER_LENGTH+PEC_LENGTH;
+	static const uint8_t COMMAND_LENGTH = 2;
+	static const uint8_t COMMAND_DATA_LENGTH = DATA_REGISTER_LENGTH + PEC15::LENGTH;
 
 	LTC6811();
 

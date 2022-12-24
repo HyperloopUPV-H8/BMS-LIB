@@ -67,6 +67,9 @@ private:
 	voltage_register_group* read_voltage_register(COMMAND voltage_register);
 	LTC6811 external_adcs[EXTERNAL_ADCS];
 
+	void add_pec(uint8_t* data_stream, uint8_t len);
+	bool is_pec_correct(uint8_t* data_stream, uint8_t len);
+
 public:
 
 	BMSH(uint8_t spi_instance);
@@ -74,7 +77,7 @@ public:
 	void wake_up();
 	void start_spi_communication();
 	void send_command(COMMAND command);
-	void send_command(COMMAND command, uint8_t data[DATA_STREAM]);
+	void send_command(COMMAND command, uint8_t* );
 
 	void start_adc_conversion_all_cells();
 	uint8_t check_adc_conversion_status();

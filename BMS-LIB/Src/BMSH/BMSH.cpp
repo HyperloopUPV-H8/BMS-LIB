@@ -23,41 +23,36 @@ void BMSH::start_spi_communication() {
 }
 
 void BMSH::send_command(COMMAND command) {
-	uint8_t command_with_pec[4];
-	uint16_t pec;
+	uint8_t message_size = LTC6811::COMMAND_LENGTH + PEC15::LENGTH;
+	uint8_t tx_message[message_size];
 
-	command_with_pec[0] = (uint8_t)(command >> 8);
-	command_with_pec[1] = (uint8_t)(command);
-	pec = PEC15::calculate(command_with_pec, 2);
-	command_with_pec[2] = (uint8_t)(pec >> 8);
-	command_with_pec[3] = (uint8_t)(pec);
+	tx_message[0] = (uint8_t)(command >> 8);
+	tx_message[1] = (uint8_t)(command);
+	add_pec(tx_message, LTC6811::COMMAND_LENGTH);
 
-	RawPacket packet = RawPacket(command_with_pec, 4);
+	RawPacket packet = RawPacket(tx_message, message_size);
 	SPI::transmit_next_packet(spi_instance, packet);
 }
 
-void BMSH::send_command(COMMAND command, uint8_t data[DATA_STREAM]) {
-	uint8_t command_with_pec_and_data[4+DATA_STREAM];
-	uint16_t pec;
+void BMSH::send_command(COMMAND command, uint8_t* data) {
+	uint8_t message_size = LTC6811::COMMAND_LENGTH + PEC15::LENGTH + DATA_STREAM;
+	uint8_t tx_message[message_size];
 
-	command_with_pec_and_data[0] = (uint8_t)(command >> 8);
-	command_with_pec_and_data[1] = (uint8_t)(command);
-	pec = PEC15::calculate(command_with_pec_and_data, LTC6811::PEC_LENGTH);
-	command_with_pec_and_data[2] = (uint8_t)(pec >> 8);
-	command_with_pec_and_data[3] = (uint8_t)(pec);
+	tx_message[0] = (uint8_t)(command >> 8);
+	tx_message[1] = (uint8_t)(command);
+	add_pec(tx_message, LTC6811::COMMAND_LENGTH);
 
 	uint8_t command_index = 4;
 	for (uint8_t external_adc=EXTERNAL_ADCS-1; external_adc >= 0; external_adc--) {
 		uint8_t register_position = LTC6811::DATA_REGISTER_LENGTH*external_adc;
 		for (uint8_t current_byte=0; current_byte < LTC6811::DATA_REGISTER_LENGTH; current_byte++) {
-			command_with_pec_and_data[command_index++] = data[register_position + current_byte];
+			tx_message[command_index++] = data[register_position + current_byte];
 		}
-		uint16_t data_pec = PEC15::calculate(&data[register_position], LTC6811::PEC_LENGTH);
-		command_with_pec_and_data[command_index++] = (uint8_t)(data_pec >> 8);
-		command_with_pec_and_data[command_index++] = (uint8_t) data_pec;
+		add_pec(&data[register_position], LTC6811::COMMAND_DATA_LENGTH);
+		command_index += 2;
 	}
 
-	RawPacket packet = RawPacket(command_with_pec_and_data, 4+DATA_STREAM);
+	RawPacket packet = RawPacket(tx_message, LTC6811::COMMAND_LENGTH + PEC15::LENGTH + DATA_STREAM);
 	SPI::transmit_next_packet(spi_instance, packet);
 }
 void BMSH::start_adc_conversion_all_cells() {
@@ -80,24 +75,21 @@ void BMSH::read_cell_voltages() {
 		for (int adc_number=0; adc_number<EXTERNAL_ADCS; adc_number++) {
 			external_adcs[adc_number].cell_voltages[register_number] = voltages[adc_number];
 		}
-// TODO: Check PEC
-//		for (int current_ic = 0; current_ic < total_ic; current_ic++) {
-//			pec_error += parse_cells(current_ic,cell_reg, cell_data, &ic[current_ic].voltages.c_codes[0], &ic[c_ic].voltages.pec_match[0]);
-//		}
 	}
-
-//	LTC681x_check_pec(total_ic, CELL, ic);
 }
 
 voltage_register_group* BMSH::read_voltage_register(COMMAND voltage_register) {
-	const uint8_t REGISTER_LENGTH = 8; // Number of bytes in each ICs register + 2 bytes for the PEC
+	const uint8_t REGISTER_LENGTH = LTC6811::DATA_REGISTER_LENGTH + PEC15::LENGTH;
 
 	send_command(voltage_register);
 
 	RawPacket cell_codes = RawPacket(REGISTER_LENGTH*EXTERNAL_ADCS);
 	SPI::receive_next_packet(spi_instance, cell_codes);
-	//TODO: Check PEC
+
 	uint8_t* voltage_data = cell_codes.get_data();
+	if (not is_pec_correct(voltage_data, REGISTER_LENGTH)) {
+		//TODO: Error Handler
+	}
 
 	static voltage_register_group voltages[EXTERNAL_ADCS];
 	for(int adc_number=0; adc_number<EXTERNAL_ADCS;adc_number++){
@@ -147,5 +139,22 @@ void BMSH::start_balancing() {
 	uint8_t write_buffer[256];
 	for (LTC6811 external_adc : external_adcs) {
 
+	}
+}
+
+void BMSH::add_pec(uint8_t* data_stream, uint8_t len) {
+	uint16_t pec = PEC15::calculate(data_stream, LTC6811::COMMAND_LENGTH);
+	data_stream[len] = (uint8_t)(pec >> 8);
+	data_stream[len+1] = (uint8_t)(pec);
+}
+
+bool BMSH::is_pec_correct(uint8_t* data_stream, uint8_t len) {
+	uint16_t calculated_pec = PEC15::calculate(data_stream, len-PEC15::LENGTH);
+	uint16_t received_pec = ((uint16_t)data_stream[len] << 8) | data_stream[len+1];
+
+	if (calculated_pec == received_pec) {
+		return true;
+	} else {
+		return false;
 	}
 }

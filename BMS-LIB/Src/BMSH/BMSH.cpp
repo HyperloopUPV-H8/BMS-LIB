@@ -9,6 +9,11 @@
 
 BMSH::COMMAND BMSH::cell_voltage_registers[6] = {READ_CELL_VOLTAGE_REGISTER_A, READ_CELL_VOLTAGE_REGISTER_B, READ_CELL_VOLTAGE_REGISTER_C, READ_CELL_VOLTAGE_REGISTER_D, READ_CELL_VOLTAGE_REGISTER_E, READ_CELL_VOLTAGE_REGISTER_F};
 
+
+/************************************************
+ *              PUBLIC FUNCTIONS
+ ***********************************************/
+
 BMSH::BMSH(uint8_t spi_instance) : spi_instance(spi_instance) {
 
 }
@@ -87,17 +92,15 @@ voltage_register_group* BMSH::read_voltage_register(COMMAND voltage_register) {
 	SPI::receive_next_packet(spi_instance, cell_codes);
 
 	uint8_t* voltage_data = cell_codes.get_data();
-	if (not is_pec_correct(voltage_data, REGISTER_LENGTH)) {
-		//TODO: Error Handler
-	}
 
 	static voltage_register_group voltages[EXTERNAL_ADCS];
-	for(int adc_number=0; adc_number<EXTERNAL_ADCS;adc_number++){
-		voltages[adc_number] = {
-			voltage_data[0] + ((uint16_t)voltage_data[1] << 8),
-			voltage_data[2] + ((uint16_t)voltage_data[3] << 8),
-			voltage_data[4] + ((uint16_t)voltage_data[5] << 8)
-		};
+	for(int adc_number=0; adc_number<EXTERNAL_ADCS; adc_number++){
+		uint8_t* adc_address = &voltage_data[REGISTER_LENGTH*adc_number];
+		if (not is_pec_correct(adc_address, REGISTER_LENGTH)) {
+			//TODO: Error Handler
+		}
+
+		voltages[adc_number] = parse_voltage_register(adc_address);
 	}
 
 	return voltages;
@@ -138,8 +141,21 @@ void BMSH::update_temperatures() {
 void BMSH::start_balancing() {
 	uint8_t write_buffer[256];
 	for (LTC6811 external_adc : external_adcs) {
-
+		// TODO
 	}
+}
+
+
+/************************************************
+ *              PRIVATE FUNCTIONS
+ ***********************************************/
+
+voltage_register_group BMSH::parse_voltage_register(uint8_t* voltage_data) {
+	return {
+		voltage_data[0] + ((uint16_t)voltage_data[1] << 8),
+		voltage_data[2] + ((uint16_t)voltage_data[3] << 8),
+		voltage_data[4] + ((uint16_t)voltage_data[5] << 8)
+	};
 }
 
 void BMSH::add_pec(uint8_t* data_stream, uint8_t len) {

@@ -67,6 +67,7 @@ private:
 	voltage_register_group* read_voltage_register(COMMAND voltage_register);
 	LTC6811 external_adcs[EXTERNAL_ADCS];
 
+	voltage_register_group parse_voltage_register(uint8_t* voltage_data);
 	void add_pec(uint8_t* data_stream, uint8_t len);
 	bool is_pec_correct(uint8_t* data_stream, uint8_t len);
 

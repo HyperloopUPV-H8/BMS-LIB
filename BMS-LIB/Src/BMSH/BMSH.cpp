@@ -31,8 +31,7 @@ void BMSH::send_command(COMMAND command) {
 	uint8_t message_size = LTC6811::COMMAND_LENGTH + PEC15::LENGTH;
 	uint8_t tx_message[message_size];
 
-	tx_message[0] = (uint8_t)(command >> 8);
-	tx_message[1] = (uint8_t)(command);
+	parse_command(tx_message, command);
 	add_pec(tx_message, LTC6811::COMMAND_LENGTH);
 
 	RawPacket packet = RawPacket(tx_message, message_size);
@@ -43,23 +42,15 @@ void BMSH::send_command(COMMAND command, uint8_t* data) {
 	uint8_t message_size = LTC6811::COMMAND_LENGTH + PEC15::LENGTH + DATA_STREAM;
 	uint8_t tx_message[message_size];
 
-	tx_message[0] = (uint8_t)(command >> 8);
-	tx_message[1] = (uint8_t)(command);
+	parse_command(tx_message, command);
 	add_pec(tx_message, LTC6811::COMMAND_LENGTH);
 
-	uint8_t command_index = 4;
-	for (uint8_t external_adc=EXTERNAL_ADCS-1; external_adc >= 0; external_adc--) {
-		uint8_t register_position = LTC6811::DATA_REGISTER_LENGTH*external_adc;
-		for (uint8_t current_byte=0; current_byte < LTC6811::DATA_REGISTER_LENGTH; current_byte++) {
-			tx_message[command_index++] = data[register_position + current_byte];
-		}
-		add_pec(&data[register_position], LTC6811::COMMAND_DATA_LENGTH);
-		command_index += 2;
-	}
+	add_message_data(&tx_message[4], data);
 
 	RawPacket packet = RawPacket(tx_message, LTC6811::COMMAND_LENGTH + PEC15::LENGTH + DATA_STREAM);
 	SPI::transmit_next_packet(spi_instance, packet);
 }
+
 void BMSH::start_adc_conversion_all_cells() {
 	send_command(START_ADC_CONVERSION_ALL_CELLS);
 }
@@ -76,10 +67,8 @@ uint8_t BMSH::check_adc_conversion_status() {
 void BMSH::read_cell_voltages() {
 	uint8_t register_number = 0;
 	for (COMMAND voltage_register : cell_voltage_registers) {
-		voltage_register_group* voltages = read_voltage_register(voltage_register);
-		for (int adc_number=0; adc_number<EXTERNAL_ADCS; adc_number++) {
-			external_adcs[adc_number].cell_voltages[register_number] = voltages[adc_number];
-		}
+		parse_voltage_group(voltage_register, register_number);
+		register_number++;
 	}
 }
 
@@ -124,10 +113,7 @@ void BMSH::start_adc_conversion_temperatures() {
 void BMSH::read_temperatures() {
 	voltage_register_group* temperatures_register1 = read_voltage_register(READ_AUXILIARY_REGISTER_GROUP_A);
 	voltage_register_group* temperatures_register2 = read_voltage_register(READ_AUXILIARY_REGISTER_GROUP_B);
-	for (int adc_number=0; adc_number<EXTERNAL_ADCS; adc_number++) {
-		external_adcs[adc_number].temperatures[0] = temperatures_register1[adc_number];
-		external_adcs[adc_number].temperatures[1] = temperatures_register2[adc_number];
-	}
+	parse_temperatures(temperatures_register1, temperatures_register2);
 }
 
 void BMSH::update_temperatures() {
@@ -158,6 +144,25 @@ voltage_register_group BMSH::parse_voltage_register(uint8_t* voltage_data) {
 	};
 }
 
+void BMSH::parse_voltage_group(COMMAND voltage_register, uint8_t voltage_number) {
+	voltage_register_group* voltages = read_voltage_register(voltage_register);
+	for (int adc_number=0; adc_number<EXTERNAL_ADCS; adc_number++) {
+		external_adcs[adc_number].cell_voltages[voltage_number] = voltages[adc_number];
+	}
+}
+
+void BMSH::parse_command(uint8_t* tx_message, COMMAND command) {
+	tx_message[0] = (uint8_t)(command >> 8);
+	tx_message[1] = (uint8_t)(command);
+}
+
+void BMSH::parse_temperatures(voltage_register_group* temperatures_register1, voltage_register_group* temperatures_register2) {
+	for (int adc_number=0; adc_number<EXTERNAL_ADCS; adc_number++) {
+		external_adcs[adc_number].temperatures[0] = temperatures_register1[adc_number];
+		external_adcs[adc_number].temperatures[1] = temperatures_register2[adc_number];
+	}
+}
+
 void BMSH::add_pec(uint8_t* data_stream, uint8_t len) {
 	uint16_t pec = PEC15::calculate(data_stream, LTC6811::COMMAND_LENGTH);
 	data_stream[len] = (uint8_t)(pec >> 8);
@@ -172,5 +177,17 @@ bool BMSH::is_pec_correct(uint8_t* data_stream, uint8_t len) {
 		return true;
 	} else {
 		return false;
+	}
+}
+
+void BMSH::add_message_data(uint8_t* message, uint8_t* data) {
+	uint8_t index;
+	for (uint8_t external_adc=EXTERNAL_ADCS-1; external_adc >= 0; external_adc--) {
+		uint8_t register_position = LTC6811::DATA_REGISTER_LENGTH*external_adc;
+		for (uint8_t current_byte=0; current_byte < LTC6811::DATA_REGISTER_LENGTH; current_byte++) {
+			message[index++] = data[register_position + current_byte];
+		}
+		add_pec(&data[register_position], LTC6811::COMMAND_DATA_LENGTH);
+		index += 2;
 	}
 }

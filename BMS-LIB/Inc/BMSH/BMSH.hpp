@@ -68,8 +68,13 @@ private:
 	LTC6811 external_adcs[EXTERNAL_ADCS];
 
 	voltage_register_group parse_voltage_register(uint8_t* voltage_data);
+	void parse_voltage_group(COMMAND voltage_register, uint8_t voltage_number);
+	void parse_command(uint8_t* tx_message, COMMAND command);
+	void parse_temperatures(voltage_register_group* temperatures_register1, voltage_register_group* temperatures_register2);
+
 	void add_pec(uint8_t* data_stream, uint8_t len);
 	bool is_pec_correct(uint8_t* data_stream, uint8_t len);
+	void add_message_data(uint8_t* message, uint8_t* data);
 
 public:
 

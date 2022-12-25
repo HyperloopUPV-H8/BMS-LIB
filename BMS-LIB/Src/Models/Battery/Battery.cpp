@@ -43,7 +43,7 @@ bool Battery::needs_balance() {
 }
 
 uint16_t Battery::calculate_soc(uint16_t cell) {
-	float real_voltage = (cell*5.0)/ 65535;
+	float real_voltage = cell / 10000.0;
 
 	if (real_voltage > MAX_CELL_VOLTAGE or real_voltage < MIN_CELL_VOLTAGE) {
 		//TODO: Error Handler

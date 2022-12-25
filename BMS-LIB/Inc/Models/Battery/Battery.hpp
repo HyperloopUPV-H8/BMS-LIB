@@ -30,9 +30,10 @@ public:
 	Battery(voltage_register_group& cell_register1, voltage_register_group& cell_register2, uint16_t& temperature1, uint16_t& temperature2);
 
 	bool needs_balance();
+	uint16_t get_soc();
 
 private:
-	uint16_t calculate_soc(uint16_t cell);
+	uint16_t get_cell_soc(uint16_t cell);
 
 	static uint16_t soc[901];
 };

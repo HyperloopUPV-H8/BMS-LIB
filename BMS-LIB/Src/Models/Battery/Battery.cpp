@@ -63,3 +63,19 @@ uint16_t Battery::get_cell_soc(uint16_t cell) {
 	uint16_t soc_index = (cell - MIN_CELL_VOLTAGE)*1000;
 	return soc[soc_index];
 }
+
+float Battery::get_charging_maximum_voltage() {
+	//TODO: change temperature units in class.
+	uint16_t average_temperature = ((uint32_t)temperature1 + temperature2) / 2;
+	if (average_temperature < 25) {
+		return 4.05;
+	}
+
+	else if (average_temperature < 40) {
+		return 4.1;
+	}
+
+	else {
+		return 4.2;
+	}
+}

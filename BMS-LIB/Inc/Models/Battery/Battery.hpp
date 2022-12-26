@@ -9,7 +9,7 @@
 
 #define CELLS 6
 #define MAX_SOC_DIFFERENCE 100
-#define MIN_CELL_VOLTAGE 3.273
+#define MIN_CELL_VOLTAGE 3.4
 #define MAX_CELL_VOLTAGE 4.2
 
 #include "ST-LIB.hpp"
@@ -34,6 +34,7 @@ public:
 
 private:
 	uint16_t get_cell_soc(uint16_t cell);
+	float get_charging_maximum_voltage();
 
 	static uint16_t soc[901];
 };

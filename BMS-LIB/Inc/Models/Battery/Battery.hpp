@@ -7,11 +7,6 @@
 
 #pragma once
 
-#define CELLS 6
-#define MAX_SOC_DIFFERENCE 100
-#define MIN_CELL_VOLTAGE 3.4
-#define MAX_CELL_VOLTAGE 4.2
-
 #include "ST-LIB.hpp"
 
 struct voltage_register_group {
@@ -22,6 +17,11 @@ struct voltage_register_group {
 
 class Battery {
 public:
+	static const uint8_t CELLS = 6;
+	static const uint8_t MAX_SOC_DIFFERENCE = 100;
+	static const uint8_t MIN_CELL_VOLTAGE = 3.4;
+	static const uint8_t MAX_CELL_VOLTAGE = 4.2;
+
 	uint16_t cells[CELLS];
 	uint16_t temperature1;
 	uint16_t temperature2;

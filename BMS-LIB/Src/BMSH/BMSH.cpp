@@ -14,9 +14,7 @@ BMSH::COMMAND BMSH::cell_voltage_registers[6] = {READ_CELL_VOLTAGE_REGISTER_A, R
  *              PUBLIC FUNCTIONS
  ***********************************************/
 
-BMSH::BMSH(uint8_t spi_instance) : spi_instance(spi_instance) {
-
-}
+BMSH::BMSH(uint8_t spi_instance) : spi_instance(spi_instance) {}
 
 void BMSH::wake_up() {
 	RawPacket dummy_packet = RawPacket(1);
@@ -138,9 +136,9 @@ void BMSH::start_balancing() {
 
 voltage_register_group BMSH::parse_voltage_register(uint8_t* voltage_data) {
 	return {
-		voltage_data[0] + ((uint16_t)voltage_data[1] << 8),
-		voltage_data[2] + ((uint16_t)voltage_data[3] << 8),
-		voltage_data[4] + ((uint16_t)voltage_data[5] << 8)
+		(uint16_t)(voltage_data[0] + ((uint16_t)voltage_data[1] << 8)),
+		(uint16_t)(voltage_data[2] + ((uint16_t)voltage_data[3] << 8)),
+		(uint16_t)(voltage_data[4] + ((uint16_t)voltage_data[5] << 8))
 	};
 }
 

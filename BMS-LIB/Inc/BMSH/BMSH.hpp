@@ -7,8 +7,6 @@
 
 #pragma once
 
-
-
 #include "ST-LIB.hpp"
 #include "LTC6811/LTC6811.hpp"
 #include "PEC15/PEC15.hpp"
@@ -83,7 +81,7 @@ public:
 	void wake_up();
 	void start_spi_communication();
 	void send_command(COMMAND command);
-	void send_command(COMMAND command, uint8_t* );
+	void send_command(COMMAND command, uint8_t* tx_data);
 
 	void start_adc_conversion_all_cells();
 	uint8_t check_adc_conversion_status();

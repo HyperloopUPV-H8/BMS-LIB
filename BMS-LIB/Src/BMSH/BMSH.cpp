@@ -17,8 +17,7 @@ BMSH::COMMAND BMSH::cell_voltage_registers[6] = {READ_CELL_VOLTAGE_REGISTER_A, R
 BMSH::BMSH(uint8_t spi_instance) : spi_instance(spi_instance) {}
 
 void BMSH::wake_up() {
-	RawPacket dummy_packet = RawPacket(1);
-	SPI::transmit_next_packet(spi_instance, dummy_packet);
+	SPI::transmit(spi_instance, 1);
 }
 
 void BMSH::start_spi_communication() {
@@ -26,27 +25,26 @@ void BMSH::start_spi_communication() {
 }
 
 void BMSH::send_command(COMMAND command) {
-	uint8_t message_size = LTC6811::COMMAND_LENGTH + PEC15::LENGTH;
-	uint8_t tx_message[message_size];
+	constexpr uint8_t message_size = LTC6811::COMMAND_LENGTH + PEC15::LENGTH;
+	array<uint8_t, message_size> tx_message;
 
-	parse_command(tx_message, command);
-	add_pec(tx_message, LTC6811::COMMAND_LENGTH);
+	parse_command(tx_message.data(), command);
+	add_pec(tx_message.data(), LTC6811::COMMAND_LENGTH);
 
-	RawPacket packet = RawPacket(tx_message, message_size);
-	SPI::transmit_next_packet(spi_instance, packet);
+	SPI::transmit(spi_instance, tx_message);
 }
 
 void BMSH::send_command(COMMAND command, uint8_t* data) {
-	uint8_t message_size = LTC6811::COMMAND_LENGTH + PEC15::LENGTH + DATA_STREAM;
-	uint8_t tx_message[message_size];
+	constexpr uint8_t message_size = LTC6811::COMMAND_LENGTH + PEC15::LENGTH + BMSH::DATA_STREAM;
+	array<uint8_t, message_size> tx_message;
 
-	parse_command(tx_message, command);
-	add_pec(tx_message, LTC6811::COMMAND_LENGTH);
+	parse_command(tx_message.data(), command);
+	add_pec(tx_message.data(), LTC6811::COMMAND_LENGTH);
 
-	add_message_data(&tx_message[4], data);
+	uint8_t* data_address = &(tx_message.data()[4]);
+	add_message_data(data_address, data);
 
-	RawPacket packet = RawPacket(tx_message, LTC6811::COMMAND_LENGTH + PEC15::LENGTH + DATA_STREAM);
-	SPI::transmit_next_packet(spi_instance, packet);
+	SPI::transmit(spi_instance, tx_message);
 }
 
 void BMSH::start_adc_conversion_all_cells() {
@@ -56,10 +54,10 @@ void BMSH::start_adc_conversion_all_cells() {
 uint8_t BMSH::check_adc_conversion_status() {
 	send_command(CHECK_ADC_CONVERSION_STATUS);
 
-	RawPacket adc_state = RawPacket(1);
-	SPI::receive_next_packet(spi_instance, adc_state);
+	array<uint8_t, 1> adc_state;
+	SPI::receive(spi_instance, adc_state);
 
-	return(adc_state.get_data()[0]);
+	return(adc_state.data()[0]);
 }
 
 void BMSH::read_cell_voltages() {
@@ -70,24 +68,28 @@ void BMSH::read_cell_voltages() {
 	}
 }
 
-voltage_register_group* BMSH::read_voltage_register(COMMAND voltage_register) {
+array<voltage_register_group, BMSH::EXTERNAL_ADCS> BMSH::read_voltage_register(COMMAND voltage_register) {
 	const uint8_t REGISTER_LENGTH = LTC6811::DATA_REGISTER_LENGTH + PEC15::LENGTH;
 
 	send_command(voltage_register);
 
-	RawPacket cell_codes = RawPacket(REGISTER_LENGTH*EXTERNAL_ADCS);
-	SPI::receive_next_packet(spi_instance, cell_codes);
+	constexpr size_t voltage_data_size = REGISTER_LENGTH*EXTERNAL_ADCS;
+	array<uint8_t, voltage_data_size> voltage_data;
+	SPI::receive(spi_instance, voltage_data);
 
-	uint8_t* voltage_data = cell_codes.get_data();
-
-	static voltage_register_group voltages[EXTERNAL_ADCS];
-	for(int adc_number=0; adc_number<EXTERNAL_ADCS; adc_number++){
-		uint8_t* adc_address = &voltage_data[REGISTER_LENGTH*adc_number];
-		if (not is_pec_correct(adc_address, REGISTER_LENGTH)) {
+	static array<voltage_register_group, EXTERNAL_ADCS> voltages;
+	for(int adc_number : iota_view{0, EXTERNAL_ADCS}) {
+//		uint8_t* start_position = voltages.begin() + REGISTER_LENGTH*adc_number;
+//		uint8_t* end_position = voltages.begin() + REGISTER_LENGTH*(adc_number+1);
+//								voltage.begin + REGISTER_LENGTH*adc_number + REGISTER_LENGTH;
+//
+		span adc_voltages(voltages.begin() + REGISTER_LENGTH*adc_number,
+				voltages.begin() + REGISTER_LENGTH*(adc_number+1));
+		if (not is_pec_correct(adc_voltages)) {
 			//TODO: Error Handler
 		}
 
-		voltages[adc_number] = parse_voltage_register(adc_address);
+		voltages[adc_number] = parse_voltage_register(adc_voltages);
 	}
 
 	return voltages;
@@ -161,31 +163,18 @@ void BMSH::parse_temperatures(voltage_register_group* temperatures_register1, vo
 	}
 }
 
-void BMSH::add_pec(uint8_t* data_stream, uint8_t len) {
-	uint16_t pec = PEC15::calculate(data_stream, LTC6811::COMMAND_LENGTH);
-	data_stream[len] = (uint8_t)(pec >> 8);
-	data_stream[len+1] = (uint8_t)(pec);
-}
-
-bool BMSH::is_pec_correct(uint8_t* data_stream, uint8_t len) {
-	uint16_t calculated_pec = PEC15::calculate(data_stream, len-PEC15::LENGTH);
-	uint16_t received_pec = ((uint16_t)data_stream[len] << 8) | data_stream[len+1];
-
-	if (calculated_pec == received_pec) {
-		return true;
-	} else {
-		return false;
-	}
-}
-
 void BMSH::add_message_data(uint8_t* message, uint8_t* data) {
-	uint8_t index;
+	uint8_t index = 0;
+	const uint8_t register_length = LTC6811::DATA_REGISTER_LENGTH;
+	const uint8_t command_length = LTC6811::COMMAND_DATA_LENGTH;
+
 	for (uint8_t external_adc=EXTERNAL_ADCS-1; external_adc >= 0; external_adc--) {
-		uint8_t register_position = LTC6811::DATA_REGISTER_LENGTH*external_adc;
-		for (uint8_t current_byte=0; current_byte < LTC6811::DATA_REGISTER_LENGTH; current_byte++) {
+		uint8_t register_position = register_length * external_adc;
+		for (uint8_t current_byte=0; current_byte < register_length; current_byte++) {
 			message[index++] = data[register_position + current_byte];
 		}
-		add_pec(&data[register_position], LTC6811::COMMAND_DATA_LENGTH);
+
+		add_pec(&data[register_position], command_length);
 		index += 2;
 	}
 }

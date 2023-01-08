@@ -11,6 +11,7 @@
 #include "LTC6811/LTC6811.hpp"
 #include "PEC15/PEC15.hpp"
 
+using namespace views;
 
 class BMSH {
 private:
@@ -62,7 +63,7 @@ public:
 private:
 	uint8_t spi_instance;
 	static COMMAND cell_voltage_registers[6];
-	voltage_register_group* read_voltage_register(COMMAND voltage_register);
+	array<voltage_register_group, BMSH::EXTERNAL_ADCS> read_voltage_register(COMMAND voltage_register);
 	LTC6811 external_adcs[EXTERNAL_ADCS];
 
 	voltage_register_group parse_voltage_register(uint8_t* voltage_data);
@@ -71,8 +72,27 @@ private:
 	void parse_temperatures(voltage_register_group* temperatures_register1, voltage_register_group* temperatures_register2);
 
 	void add_pec(uint8_t* data_stream, uint8_t len);
-	bool is_pec_correct(uint8_t* data_stream, uint8_t len);
+
+	template<size_t SIZE>
+	bool is_pec_correct(array<uint8_t, SIZE> data_stream){
+		uint16_t calculated_pec = PEC15::calculate(span(data_stream.begin(), data_stream.end()-2));
+		uint16_t received_pec = ((uint16_t)data_stream.end()[-1] << 8) | data_stream.end()[-2];
+
+		if (calculated_pec == received_pec) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
 	void add_message_data(uint8_t* message, uint8_t* data);
+
+	void start_adc_conversion_all_cells();
+	uint8_t check_adc_conversion_status();
+	void read_cell_voltages();
+
+	void start_adc_conversion_temperatures();
+	void read_temperatures();
 
 public:
 
@@ -83,13 +103,7 @@ public:
 	void send_command(COMMAND command);
 	void send_command(COMMAND command, uint8_t* tx_data);
 
-	void start_adc_conversion_all_cells();
-	uint8_t check_adc_conversion_status();
-	void read_cell_voltages();
 	void update_cell_voltages();
-
-	void start_adc_conversion_temperatures();
-	void read_temperatures();
 	void update_temperatures();
 
 	void start_balancing();

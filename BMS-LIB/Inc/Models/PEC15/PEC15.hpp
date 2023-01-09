@@ -8,7 +8,6 @@
 #pragma once
 
 #include "ST-LIB.hpp"
-#include "span"
 
 class PEC15 {
 public:

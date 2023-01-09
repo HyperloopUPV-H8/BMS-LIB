@@ -29,7 +29,7 @@ void BMSH::send_command(COMMAND command) {
 	array<uint8_t, message_size> tx_message;
 
 	parse_command(tx_message, command);
-	add_pec(tx_message, LTC6811::COMMAND_LENGTH);
+	add_pec({tx_message.begin(), tx_message.begin()+4});
 
 	SPI::transmit(spi_instance, tx_message);
 }
@@ -39,7 +39,7 @@ void BMSH::send_command(COMMAND command, span<uint8_t> data) {
 	array<uint8_t, message_size> tx_message;
 
 	parse_command(tx_message, command);
-	add_pec(tx_message, LTC6811::COMMAND_LENGTH);
+	add_pec({tx_message.begin(), tx_message.begin()+4});
 
 	span<uint8_t> data_address{tx_message.begin()+4, tx_message.end()};
 	add_message_data(data_address, data);
@@ -79,12 +79,7 @@ array<voltage_register_group, BMSH::EXTERNAL_ADCS> BMSH::read_voltage_register(C
 
 	static array<voltage_register_group, EXTERNAL_ADCS> voltages;
 	for(int adc_number : iota(EXTERNAL_ADCS)) {
-//		uint8_t* start_position = voltages.begin() + REGISTER_LENGTH*adc_number;
-//		uint8_t* end_position = voltages.begin() + REGISTER_LENGTH*(adc_number+1);
-//								voltage.begin + REGISTER_LENGTH*adc_number + REGISTER_LENGTH;
-//
-		span adc_voltages(voltage_data.begin() + REGISTER_LENGTH*adc_number,
-				voltage_data.begin() + REGISTER_LENGTH*(adc_number+1));
+		span adc_voltages(voltage_data.begin() + REGISTER_LENGTH*adc_number, voltage_data.begin() + REGISTER_LENGTH*(adc_number+1));
 		if (not is_pec_correct(adc_voltages)) {
 			//TODO: Error Handler
 		}
@@ -164,6 +159,13 @@ void BMSH::parse_temperatures(array<voltage_register_group, BMSH::EXTERNAL_ADCS>
 	}
 }
 
+void BMSH::add_pec(span<uint8_t> data_stream) {
+	span<uint8_t> data_without_pec{data_stream.begin(), data_stream.end()-2};
+	uint16_t pec = PEC15::calculate(data_without_pec);
+	data_stream.end()[-2] = (uint8_t)(pec >> 8);
+	data_stream.end()[-1] = (uint8_t)(pec);
+}
+
 bool BMSH::is_pec_correct(span<uint8_t> data_stream){
 	uint16_t calculated_pec = PEC15::calculate(span(data_stream.begin(), data_stream.end()-2));
 	uint16_t received_pec = ((uint16_t)data_stream.end()[-1] << 8) | data_stream.end()[-2];
@@ -181,13 +183,13 @@ void BMSH::add_message_data(span<uint8_t> message, span<uint8_t> data) {
 	const uint8_t register_length = LTC6811::DATA_REGISTER_LENGTH;
 	const uint8_t command_length = LTC6811::COMMAND_DATA_LENGTH;
 
-	for (uint8_t external_adc : iota(EXTERNAL_ADCS-1) | reverse) {
+	for (uint8_t external_adc : iota(0, EXTERNAL_ADCS-1) | reverse) {
 		uint8_t register_position = register_length * external_adc;
-		for (uint8_t current_byte : iota(register_length)) {
+		for (uint8_t current_byte : iota(0, register_length)) {
 			message[index++] = data[register_position + current_byte];
 		}
 
-		add_pec(message.subspan(register_position), command_length);
+		add_pec(message.subspan(register_position, command_length));
 		index += 2;
 	}
 }

@@ -7,8 +7,6 @@
 
 #include "PEC15/PEC15.hpp"
 
-
-
 uint16_t PEC15::calculate(span<uint8_t> data) {
 	uint16_t remainder, addr;
 	remainder = 16;

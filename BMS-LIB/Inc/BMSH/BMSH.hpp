@@ -13,6 +13,8 @@
 
 using std::views::iota;
 using std::views::reverse;
+using std::views::take;
+using std::views::drop;
 
 class BMSH {
 private:
@@ -72,7 +74,7 @@ private:
 	void parse_command(span<uint8_t> tx_message, COMMAND command);
 	void parse_temperatures(array<voltage_register_group, BMSH::EXTERNAL_ADCS> temperatures_register1, array<voltage_register_group, BMSH::EXTERNAL_ADCS> temperatures_register2);
 
-	void add_pec(span<uint8_t> data_stream, uint8_t len);
+	void add_pec(span<uint8_t> data_stream);
 	bool is_pec_correct(span<uint8_t> data_stream);
 
 	void add_message_data(span<uint8_t> message, span<uint8_t> data);

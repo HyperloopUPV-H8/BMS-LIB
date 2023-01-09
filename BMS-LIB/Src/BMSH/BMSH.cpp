@@ -183,13 +183,13 @@ void BMSH::add_message_data(span<uint8_t> message, span<uint8_t> data) {
 	const uint8_t register_length = LTC6811::DATA_REGISTER_LENGTH;
 	const uint8_t command_length = LTC6811::COMMAND_DATA_LENGTH;
 
-	for (uint8_t external_adc : iota(0, EXTERNAL_ADCS-1) | reverse) {
+	for (uint8_t external_adc : iota(0, (int)EXTERNAL_ADCS) | reverse) {
 		uint8_t register_position = register_length * external_adc;
-		for (uint8_t current_byte : iota(0, register_length)) {
+		for (uint8_t current_byte : iota(0, (int)register_length)) {
 			message[index++] = data[register_position + current_byte];
 		}
 
-		add_pec(message.subspan(register_position, command_length));
+		add_pec(message.subspan(index-register_length, command_length));
 		index += 2;
 	}
 }

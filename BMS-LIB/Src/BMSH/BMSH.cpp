@@ -28,20 +28,20 @@ void BMSH::send_command(COMMAND command) {
 	constexpr uint8_t message_size = LTC6811::COMMAND_LENGTH + PEC15::LENGTH;
 	array<uint8_t, message_size> tx_message;
 
-	parse_command(tx_message.data(), command);
-	add_pec(tx_message.data(), LTC6811::COMMAND_LENGTH);
+	parse_command(tx_message, command);
+	add_pec(tx_message, LTC6811::COMMAND_LENGTH);
 
 	SPI::transmit(spi_instance, tx_message);
 }
 
-void BMSH::send_command(COMMAND command, uint8_t* data) {
+void BMSH::send_command(COMMAND command, span<uint8_t> data) {
 	constexpr uint8_t message_size = LTC6811::COMMAND_LENGTH + PEC15::LENGTH + BMSH::DATA_STREAM;
 	array<uint8_t, message_size> tx_message;
 
-	parse_command(tx_message.data(), command);
-	add_pec(tx_message.data(), LTC6811::COMMAND_LENGTH);
+	parse_command(tx_message, command);
+	add_pec(tx_message, LTC6811::COMMAND_LENGTH);
 
-	uint8_t* data_address = &(tx_message.data()[4]);
+	span<uint8_t> data_address{tx_message.begin()+4, tx_message.end()};
 	add_message_data(data_address, data);
 
 	SPI::transmit(spi_instance, tx_message);
@@ -78,13 +78,13 @@ array<voltage_register_group, BMSH::EXTERNAL_ADCS> BMSH::read_voltage_register(C
 	SPI::receive(spi_instance, voltage_data);
 
 	static array<voltage_register_group, EXTERNAL_ADCS> voltages;
-	for(int adc_number : iota_view{0, EXTERNAL_ADCS}) {
+	for(int adc_number : iota(EXTERNAL_ADCS)) {
 //		uint8_t* start_position = voltages.begin() + REGISTER_LENGTH*adc_number;
 //		uint8_t* end_position = voltages.begin() + REGISTER_LENGTH*(adc_number+1);
 //								voltage.begin + REGISTER_LENGTH*adc_number + REGISTER_LENGTH;
 //
-		span adc_voltages(voltages.begin() + REGISTER_LENGTH*adc_number,
-				voltages.begin() + REGISTER_LENGTH*(adc_number+1));
+		span adc_voltages(voltage_data.begin() + REGISTER_LENGTH*adc_number,
+				voltage_data.begin() + REGISTER_LENGTH*(adc_number+1));
 		if (not is_pec_correct(adc_voltages)) {
 			//TODO: Error Handler
 		}
@@ -111,8 +111,8 @@ void BMSH::start_adc_conversion_temperatures() {
 }
 
 void BMSH::read_temperatures() {
-	voltage_register_group* temperatures_register1 = read_voltage_register(READ_AUXILIARY_REGISTER_GROUP_A);
-	voltage_register_group* temperatures_register2 = read_voltage_register(READ_AUXILIARY_REGISTER_GROUP_B);
+	array<voltage_register_group, BMSH::EXTERNAL_ADCS> temperatures_register1 = read_voltage_register(READ_AUXILIARY_REGISTER_GROUP_A);
+	array<voltage_register_group, BMSH::EXTERNAL_ADCS> temperatures_register2 = read_voltage_register(READ_AUXILIARY_REGISTER_GROUP_B);
 	parse_temperatures(temperatures_register1, temperatures_register2);
 }
 
@@ -136,7 +136,7 @@ void BMSH::start_balancing() {
  *              PRIVATE FUNCTIONS
  ***********************************************/
 
-voltage_register_group BMSH::parse_voltage_register(uint8_t* voltage_data) {
+voltage_register_group BMSH::parse_voltage_register(span<uint8_t> voltage_data) {
 	return {
 		(uint16_t)(voltage_data[0] + ((uint16_t)voltage_data[1] << 8)),
 		(uint16_t)(voltage_data[2] + ((uint16_t)voltage_data[3] << 8)),
@@ -145,36 +145,49 @@ voltage_register_group BMSH::parse_voltage_register(uint8_t* voltage_data) {
 }
 
 void BMSH::parse_voltage_group(COMMAND voltage_register, uint8_t voltage_number) {
-	voltage_register_group* voltages = read_voltage_register(voltage_register);
+	array<voltage_register_group, BMSH::EXTERNAL_ADCS> voltages = read_voltage_register(voltage_register);
 	for (int adc_number=0; adc_number<EXTERNAL_ADCS; adc_number++) {
 		external_adcs[adc_number].cell_voltages[voltage_number] = voltages[adc_number];
 	}
 }
 
-void BMSH::parse_command(uint8_t* tx_message, COMMAND command) {
+void BMSH::parse_command(span<uint8_t> tx_message, COMMAND command) {
 	tx_message[0] = (uint8_t)(command >> 8);
 	tx_message[1] = (uint8_t)(command);
 }
 
-void BMSH::parse_temperatures(voltage_register_group* temperatures_register1, voltage_register_group* temperatures_register2) {
-	for (int adc_number=0; adc_number<EXTERNAL_ADCS; adc_number++) {
+void BMSH::parse_temperatures(array<voltage_register_group, BMSH::EXTERNAL_ADCS> temperatures_register1, array<voltage_register_group, BMSH::EXTERNAL_ADCS> temperatures_register2) {
+	for (int adc_number=0; adc_number<EXTERNAL_ADCS; adc_number++)
+	for (uint8_t adc_number : iota(EXTERNAL_ADCS)) {
 		external_adcs[adc_number].temperatures[0] = temperatures_register1[adc_number];
 		external_adcs[adc_number].temperatures[1] = temperatures_register2[adc_number];
 	}
 }
 
-void BMSH::add_message_data(uint8_t* message, uint8_t* data) {
+bool BMSH::is_pec_correct(span<uint8_t> data_stream){
+	uint16_t calculated_pec = PEC15::calculate(span(data_stream.begin(), data_stream.end()-2));
+	uint16_t received_pec = ((uint16_t)data_stream.end()[-1] << 8) | data_stream.end()[-2];
+
+	if (calculated_pec == received_pec) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+
+void BMSH::add_message_data(span<uint8_t> message, span<uint8_t> data) {
 	uint8_t index = 0;
 	const uint8_t register_length = LTC6811::DATA_REGISTER_LENGTH;
 	const uint8_t command_length = LTC6811::COMMAND_DATA_LENGTH;
 
-	for (uint8_t external_adc=EXTERNAL_ADCS-1; external_adc >= 0; external_adc--) {
+	for (uint8_t external_adc : iota(EXTERNAL_ADCS-1) | reverse) {
 		uint8_t register_position = register_length * external_adc;
-		for (uint8_t current_byte=0; current_byte < register_length; current_byte++) {
+		for (uint8_t current_byte : iota(register_length)) {
 			message[index++] = data[register_position + current_byte];
 		}
 
-		add_pec(&data[register_position], command_length);
+		add_pec(message.subspan(register_position), command_length);
 		index += 2;
 	}
 }

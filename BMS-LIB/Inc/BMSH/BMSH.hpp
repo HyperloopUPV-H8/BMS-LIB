@@ -11,7 +11,8 @@
 #include "LTC6811/LTC6811.hpp"
 #include "PEC15/PEC15.hpp"
 
-using namespace views;
+using std::views::iota;
+using std::views::reverse;
 
 class BMSH {
 private:
@@ -66,26 +67,15 @@ private:
 	array<voltage_register_group, BMSH::EXTERNAL_ADCS> read_voltage_register(COMMAND voltage_register);
 	LTC6811 external_adcs[EXTERNAL_ADCS];
 
-	voltage_register_group parse_voltage_register(uint8_t* voltage_data);
+	voltage_register_group parse_voltage_register(span<uint8_t> voltage_data);
 	void parse_voltage_group(COMMAND voltage_register, uint8_t voltage_number);
-	void parse_command(uint8_t* tx_message, COMMAND command);
-	void parse_temperatures(voltage_register_group* temperatures_register1, voltage_register_group* temperatures_register2);
+	void parse_command(span<uint8_t> tx_message, COMMAND command);
+	void parse_temperatures(array<voltage_register_group, BMSH::EXTERNAL_ADCS> temperatures_register1, array<voltage_register_group, BMSH::EXTERNAL_ADCS> temperatures_register2);
 
-	void add_pec(uint8_t* data_stream, uint8_t len);
+	void add_pec(span<uint8_t> data_stream, uint8_t len);
+	bool is_pec_correct(span<uint8_t> data_stream);
 
-	template<size_t SIZE>
-	bool is_pec_correct(array<uint8_t, SIZE> data_stream){
-		uint16_t calculated_pec = PEC15::calculate(span(data_stream.begin(), data_stream.end()-2));
-		uint16_t received_pec = ((uint16_t)data_stream.end()[-1] << 8) | data_stream.end()[-2];
-
-		if (calculated_pec == received_pec) {
-			return true;
-		} else {
-			return false;
-		}
-	}
-
-	void add_message_data(uint8_t* message, uint8_t* data);
+	void add_message_data(span<uint8_t> message, span<uint8_t> data);
 
 	void start_adc_conversion_all_cells();
 	uint8_t check_adc_conversion_status();
@@ -101,7 +91,7 @@ public:
 	void wake_up();
 	void start_spi_communication();
 	void send_command(COMMAND command);
-	void send_command(COMMAND command, uint8_t* tx_data);
+	void send_command(COMMAND command, span<uint8_t> tx_data);
 
 	void update_cell_voltages();
 	void update_temperatures();

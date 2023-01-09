@@ -8,6 +8,7 @@
 #pragma once
 
 #include "ST-LIB.hpp"
+#include "span"
 
 class PEC15 {
 public:
@@ -37,16 +38,5 @@ public:
 		0x585a, 0x8ba7, 0x4e3e, 0x450c, 0x8095
 	};
 
-	template<size_t SIZE>
-	static uint16_t calculate(array<uint8_t, SIZE> data) {
-		uint16_t remainder, addr;
-		remainder = 16;
-
-		for (uint8_t data_byte : data) {
-			addr = ((remainder>>7)^data_byte)&0xff; // calculate PEC table address
-			remainder = (remainder<<8)^crc15Table[addr];
-		}
-
-		return(remainder*2); // The CRC15 has a 0 in the LSB so the remainder must be multiplied by 2
-	};
+	static uint16_t calculate(span<uint8_t> data);
 };

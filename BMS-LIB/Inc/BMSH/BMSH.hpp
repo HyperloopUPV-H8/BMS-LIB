@@ -48,8 +48,8 @@ public:
 		READ_CELL_VOLTAGE_REGISTER_C = 0b1000,
 		READ_CELL_VOLTAGE_REGISTER_D = 0b1010,
 
-		WRITE_CONFIGURATION_REGISTER_GROUP_A = 0b1,
-		READ_CONFIGURATION_REGISTER_GROUP_B = 0b10,
+		WRITE_CONFIGURATION_REGISTER_GROUP = 0b1,
+		READ_CONFIGURATION_REGISTER_GROUP = 0b10,
 
 
 		READ_AUXILIARY_REGISTER_GROUP_A = 0b00000001100,
@@ -63,14 +63,14 @@ public:
 		START_ADC_CONVERSION_GPIO_3 = 0b10001100000 | (ADC_MODE::NORMAL << 7) | (GPIO_SELECTION::GPIO_3),
 		START_ADC_CONVERSION_GPIO_4 = 0b10001100000 | (ADC_MODE::NORMAL << 7) | (GPIO_SELECTION::GPIO_4),
 		START_ADC_CONVERSION_GPIO_5 = 0b10001100000 | (ADC_MODE::NORMAL << 7) | (GPIO_SELECTION::GPIO_5),
-
-		WRITE_
 	};
 
 private:
 	uint8_t spi_instance;
+
 	static COMMAND cell_voltage_registers[6];
 	array<voltage_register_group, BMSH::EXTERNAL_ADCS> read_voltage_register(COMMAND voltage_register);
+
 	LTC6811 external_adcs[EXTERNAL_ADCS];
 
 	voltage_register_group parse_voltage_register(span<uint8_t> voltage_data);
@@ -101,6 +101,5 @@ public:
 
 	void update_cell_voltages();
 	void update_temperatures();
-
 	void start_balancing();
 };

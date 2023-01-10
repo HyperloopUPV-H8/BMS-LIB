@@ -11,6 +11,8 @@
 #include "Battery/Battery.hpp"
 #include "PEC15/PEC15.hpp"
 
+using std::views::iota;
+
 class LTC6811 {
 public:
 	enum DISCHARGE_TIME : uint8_t {
@@ -38,22 +40,25 @@ public:
 	static const uint8_t COMMAND_LENGTH = 2;
 	static const uint8_t COMMAND_DATA_LENGTH = DATA_REGISTER_LENGTH + PEC15::LENGTH;
 
-private:
 	class configuration {
-		array<PinState, 5> gpio;
-		PinState references_on;
-		PinState discharge_timer;
-		PinState adc_optimal_mode;
-		uint8_t undervoltage_comparison_voltage;
-		uint8_t overvoltage_comparison_voltage;
-		array<PinState, 12> discharge_cell;
-		DISCHARGE_TIME discharge_timeout;
+	private:
+		array<array<bool, 8>, 6> register_group;
+	public:
+		configuration() = default;
+
+		bool is_gpio_on(uint8_t gpio_pin);
+		bool is_references_on();
+		bool is_adc_optimal_mode();
+		bool is_discharge_timer_enabled();
+		uint8_t get_discharge_timeout_value();
+		float get_adc_undervoltage_comparison();
+		float get_adc_overvoltage_comparison();
+		bool is_cell_discharging(uint8_t cell);
 	};
 
-	array<uint8_t, 48> configuration_register;
-public:
 	LTC6811();
 
+	configuration peripheral_configuration;
 	voltage_register_group cell_voltages[REGISTER_GROUPS];
 	voltage_register_group temperatures[2];
 	Battery battery1;

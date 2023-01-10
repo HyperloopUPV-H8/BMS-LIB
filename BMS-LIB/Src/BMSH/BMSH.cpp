@@ -29,7 +29,7 @@ void BMSH::send_command(COMMAND command) {
 	array<uint8_t, message_size> tx_message;
 
 	parse_command(tx_message, command);
-	add_pec({tx_message.begin(), tx_message.begin()+4});
+	add_pec(tx_message);
 
 	SPI::transmit(spi_instance, tx_message);
 }
@@ -38,8 +38,9 @@ void BMSH::send_command(COMMAND command, span<uint8_t> data) {
 	constexpr uint8_t message_size = LTC6811::COMMAND_LENGTH + PEC15::LENGTH + BMSH::DATA_STREAM;
 	array<uint8_t, message_size> tx_message;
 
-	parse_command(tx_message, command);
-	add_pec({tx_message.begin(), tx_message.begin()+4});
+	span<uint8_t> command_with_pec(tx_message.begin(), tx_message.begin()+4);
+	parse_command(command_with_pec, command);
+	add_pec(command_with_pec);
 
 	span<uint8_t> data_address{tx_message.begin()+4, tx_message.end()};
 	add_message_data(data_address, data);
@@ -61,10 +62,10 @@ uint8_t BMSH::check_adc_conversion_status() {
 }
 
 void BMSH::read_cell_voltages() {
-	uint8_t register_number = 0;
+	uint8_t voltage_number = 0;
 	for (COMMAND voltage_register : cell_voltage_registers) {
-		parse_voltage_group(voltage_register, register_number);
-		register_number++;
+		parse_voltage_group(voltage_register, voltage_number);
+		voltage_number++;
 	}
 }
 

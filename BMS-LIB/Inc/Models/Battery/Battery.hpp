@@ -9,6 +9,8 @@
 
 #include "ST-LIB.hpp"
 
+using std::views::iota;
+
 struct voltage_register_group {
 	uint16_t voltage1;
 	uint16_t voltage2;

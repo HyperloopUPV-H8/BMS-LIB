@@ -23,17 +23,12 @@ Battery::Battery(voltage_register_group* voltage_register1, voltage_register_gro
 
 bool Battery::needs_balance() {
 	uint16_t max_value = get_cell_soc(*cells[0]);
-	uint16_t min_value = get_cell_soc(*cells[0]);
+	uint16_t min_value = max_value;
 
-	for (uint8_t cell_number = 1; cell_number < CELLS; cell_number++) {
+	for (uint8_t cell_number : iota(1, CELLS)) {
 		uint16_t soc_value = get_cell_soc(*cells[cell_number]);
-		if (soc_value > max_value) {
-			max_value = *cells[cell_number];
-		}
-
-		if (soc_value < min_value) {
-			min_value = *cells[cell_number];
-		}
+		if (soc_value > max_value) max_value = *cells[cell_number];
+		if (soc_value < min_value) min_value = *cells[cell_number];
 	}
 
 	if (max_value - min_value > MAX_SOC_DIFFERENCE) {

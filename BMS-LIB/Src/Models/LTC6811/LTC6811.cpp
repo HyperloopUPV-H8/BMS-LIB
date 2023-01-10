@@ -9,7 +9,14 @@
 
 LTC6811::configuration::configuration() {
 	// default config
-
+	for (uint8_t cell : iota(0, 5)) set_gpio(cell, true);
+	set_references(true);
+	set_adc_optimal_mode(true);
+	set_discharge_timer(true);
+	for (uint8_t cell : iota(0, 12)) set_cell_discharging(cell, false);
+	set_discharge_timeout_value(THIRTY_MINUTES);
+	set_adc_undervoltage(3.3);
+	set_adc_overvoltage(4.2);
 }
 
 void LTC6811::configuration::set_gpio(uint8_t gpio, bool state) {
@@ -26,12 +33,12 @@ void LTC6811::configuration::set_adc_optimal_mode(bool state) {
 }
 
 void LTC6811::configuration::set_discharge_timer(bool state) {
-	return register_group[0][1];
+	register_group[0][1] = state;
 }
 
 void LTC6811::configuration::set_cell_discharging(uint8_t cell, bool state) {
-	if (cell < 8) return register_group[4][cell];
-	if (cell < 12) return register_group[5][cell-8];
+	if (cell < 8) register_group[4][cell] = state;
+	if (cell < 12) register_group[5][cell-8] = state;
 	else return; //TODO: Error handler
 }
 
@@ -42,7 +49,7 @@ void LTC6811::configuration::set_discharge_timeout_value(DISCHARGE_TIME discharg
 }
 
 void LTC6811::configuration::set_adc_undervoltage(float adc_voltage) {
-	uint16_t undervoltage_bits = ((adc_voltage * 10000) >> 4) - 1;
+	uint16_t undervoltage_bits = ((uint16_t)(adc_voltage * 10000) >> 4) - 1;
 	for (uint8_t i : iota(0, 8)) {
 		register_group[1][i] = undervoltage_bits && (1<<i);
 	}
@@ -52,7 +59,7 @@ void LTC6811::configuration::set_adc_undervoltage(float adc_voltage) {
 }
 
 void LTC6811::configuration::set_adc_overvoltage(float adc_voltage) {
-	uint16_t overvoltage_bits = (adc_voltage * 10000) >> 4;
+	uint16_t overvoltage_bits = (uint16_t)(adc_voltage * 10000) >> 4;
 	for(uint8_t i : iota(0, 4)) {
 		register_group[2][i+4] = overvoltage_bits && (1<<i);
 	}
@@ -90,7 +97,7 @@ float LTC6811::configuration::get_adc_undervoltage() {
 		undervoltage_value += (uint16_t)register_group[1][i] << i;
 	}
 	for (uint8_t i : iota (0,4)) {
-		undervoltage_value += (uint16_t)register_group[2][i] << i+8;
+		undervoltage_value += (uint16_t)register_group[2][i] << (i+8);
 	}
 	return ((undervoltage_value+1) << 4) * 0.0001;
 }
@@ -101,7 +108,7 @@ float LTC6811::configuration::get_adc_overvoltage() {
 		overvoltage_value += (uint16_t)register_group[2][i+4] << i;
 	}
 	for (uint8_t i: iota(0, 8)) {
-		overvoltage_value += (uint16_t)register_group[3][i] << i+4;
+		overvoltage_value += (uint16_t)register_group[3][i] << (i+4);
 	}
 
 	return (overvoltage_value << 4) * 0.0001;

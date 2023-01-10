@@ -32,6 +32,12 @@ public:
 		TWO_HOURS = 15
 
 	};
+
+	static const uint8_t REGISTER_GROUPS = 4;
+	static const uint8_t DATA_REGISTER_LENGTH = 6;
+	static const uint8_t COMMAND_LENGTH = 2;
+	static const uint8_t COMMAND_DATA_LENGTH = DATA_REGISTER_LENGTH + PEC15::LENGTH;
+
 private:
 	class configuration {
 		array<PinState, 5> gpio;
@@ -42,17 +48,12 @@ private:
 		uint8_t overvoltage_comparison_voltage;
 		array<PinState, 12> discharge_cell;
 		DISCHARGE_TIME discharge_timeout;
-
 	};
-public:
-	static const uint8_t REGISTER_GROUPS = 4;
-	static const uint8_t DATA_REGISTER_LENGTH = 6;
-	static const uint8_t COMMAND_LENGTH = 2;
-	static const uint8_t COMMAND_DATA_LENGTH = DATA_REGISTER_LENGTH + PEC15::LENGTH;
-
-	LTC6811();
 
 	array<uint8_t, 48> configuration_register;
+public:
+	LTC6811();
+
 	voltage_register_group cell_voltages[REGISTER_GROUPS];
 	voltage_register_group temperatures[2];
 	Battery battery1;

@@ -44,16 +44,25 @@ public:
 	private:
 		array<array<bool, 8>, 6> register_group;
 	public:
-		configuration() = default;
+		configuration();
+
+		void set_gpio(uint8_t gpio, bool state);
+		void set_references(bool state);
+		void set_adc_optimal_mode(bool state);
+		void set_discharge_timer(bool state);
+		void set_cell_discharging(uint8_t cell, bool state);
+		void set_discharge_timeout_value(DISCHARGE_TIME discharge_timer);
+		void set_adc_undervoltage(float adc_voltage);
+		void set_adc_overvoltage(float adc_voltage);
 
 		bool is_gpio_on(uint8_t gpio_pin);
 		bool is_references_on();
 		bool is_adc_optimal_mode();
 		bool is_discharge_timer_enabled();
-		uint8_t get_discharge_timeout_value();
-		float get_adc_undervoltage_comparison();
-		float get_adc_overvoltage_comparison();
 		bool is_cell_discharging(uint8_t cell);
+		uint8_t get_discharge_timeout_value();
+		float get_adc_undervoltage();
+		float get_adc_overvoltage();
 	};
 
 	LTC6811();

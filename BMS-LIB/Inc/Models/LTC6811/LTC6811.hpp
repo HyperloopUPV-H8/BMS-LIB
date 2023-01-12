@@ -7,11 +7,14 @@
 
 #pragma once
 
+#include <bitset>
+
 #include "ST-LIB.hpp"
 #include "Battery/Battery.hpp"
 #include "PEC15/PEC15.hpp"
 
 using std::views::iota;
+using std::bitset;
 
 class LTC6811 {
 public:
@@ -42,7 +45,7 @@ public:
 
 	class configuration {
 	private:
-		array<array<bool, 8>, 6> register_group;
+		array<bitset<8>, 6> register_group;
 	public:
 		configuration();
 

@@ -127,6 +127,13 @@ void BMSH::start_balancing() {
 	}
 }
 
+void BMSH::update_configuration(){
+	array<uint8_t, DATA_STREAM> data_stream = { 0 };
+	for (LTC6811 external_adc : external_adcs) {
+
+	}
+	send_command(WRITE_CONFIGURATION_REGISTER_GROUP, data_stream);
+}
 
 /************************************************
  *              PRIVATE FUNCTIONS

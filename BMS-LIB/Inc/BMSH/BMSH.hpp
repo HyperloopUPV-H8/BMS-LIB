@@ -102,4 +102,5 @@ public:
 	void update_cell_voltages();
 	void update_temperatures();
 	void start_balancing();
+	void update_configuration();
 };

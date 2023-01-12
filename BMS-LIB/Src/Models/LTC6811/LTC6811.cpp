@@ -43,28 +43,29 @@ void LTC6811::configuration::set_cell_discharging(uint8_t cell, bool state) {
 }
 
 void LTC6811::configuration::set_discharge_timeout_value(DISCHARGE_TIME discharge_time) {
-	for (bool i : iota(0, 4)) {
-		register_group[5][i+4] = discharge_time && (1<<i);
+	bitset<4> discharge_time_bits = (bitset<4>)discharge_time;
+	for (uint8_t i : iota(0, 4)) {
+		register_group[5][i+4] = discharge_time_bits[i];
 	}
 }
 
 void LTC6811::configuration::set_adc_undervoltage(float adc_voltage) {
-	uint16_t undervoltage_bits = ((uint16_t)(adc_voltage * 10000) >> 4) - 1;
+	bitset<12> undervoltage_bits = ((uint16_t)(adc_voltage * 10000) >> 4) - 1;
 	for (uint8_t i : iota(0, 8)) {
-		register_group[1][i] = undervoltage_bits && (1<<i);
+		register_group[1][i] = undervoltage_bits[i];
 	}
 	for (uint8_t i : iota(0, 4)) {
-		register_group[2][i] = undervoltage_bits && (1<<(i+8));
+		register_group[2][i] = undervoltage_bits[i+8];
 	}
 }
 
 void LTC6811::configuration::set_adc_overvoltage(float adc_voltage) {
-	uint16_t overvoltage_bits = (uint16_t)(adc_voltage * 10000) >> 4;
+	bitset<12> overvoltage_bits = (uint16_t)(adc_voltage * 10000) >> 4;
 	for(uint8_t i : iota(0, 4)) {
-		register_group[2][i+4] = overvoltage_bits && (1<<i);
+		register_group[2][i+4] = overvoltage_bits[i];
 	}
 	for(uint8_t i : iota(0, 8)) {
-		register_group[3][i] = overvoltage_bits && (1<<i+4);
+		register_group[3][i] = overvoltage_bits[i+4];
 	}
 }
 

@@ -11,6 +11,10 @@
 #include "LTC6811/LTC6811.hpp"
 #include "PEC15/PEC15.hpp"
 
+using std::begin;
+using std::end;
+using std::copy;
+
 using std::views::iota;
 using std::views::reverse;
 using std::views::take;
@@ -57,7 +61,7 @@ public:
 
 		CHECK_ADC_CONVERSION_STATUS = 0b11100010100,
 
-		START_ADC_CONVERSION_ALL_CELLS = 0b01001100000 | (ADC_MODE::NORMAL << 7) | (DISCHARGE::PERMITTED << 4),
+		START_ADC_CONVERSION_ALL_CELLS = 0b0000001001100000 | (ADC_MODE::NORMAL << 7) | (DISCHARGE::PERMITTED << 4),
 		START_ADC_CONVERSION_GPIO_1 = 0b10001100000 | (ADC_MODE::NORMAL << 7) | (GPIO_SELECTION::GPIO_1),
 		START_ADC_CONVERSION_GPIO_2 = 0b10001100000 | (ADC_MODE::NORMAL << 7) | (GPIO_SELECTION::GPIO_2),
 		START_ADC_CONVERSION_GPIO_3 = 0b10001100000 | (ADC_MODE::NORMAL << 7) | (GPIO_SELECTION::GPIO_3),
@@ -89,6 +93,8 @@ private:
 
 	void start_adc_conversion_temperatures();
 	void read_temperatures();
+
+	void check_batteries(LTC6811 external_adc);
 
 public:
 

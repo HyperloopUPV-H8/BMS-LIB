@@ -44,9 +44,8 @@ public:
 	static const uint8_t COMMAND_DATA_LENGTH = DATA_REGISTER_LENGTH + PEC15::LENGTH;
 
 	class configuration {
-	private:
-		array<bitset<8>, 6> register_group;
 	public:
+		array<bitset<8>, DATA_REGISTER_LENGTH> register_group;
 		configuration();
 
 		void set_gpio(uint8_t gpio, bool state);
@@ -73,6 +72,5 @@ public:
 	configuration peripheral_configuration;
 	voltage_register_group cell_voltages[REGISTER_GROUPS];
 	voltage_register_group temperatures[2];
-	Battery battery1;
-	Battery battery2;
+	Battery batteries[2];
 };

@@ -25,6 +25,9 @@ public:
 	static const uint8_t MAX_CELL_VOLTAGE = 4.2;
 
 	uint16_t* cells[CELLS];
+	uint16_t* minimum_cell;
+	uint16_t* maximum_cell;
+
 	uint16_t* temperature1;
 	uint16_t* temperature2;
 

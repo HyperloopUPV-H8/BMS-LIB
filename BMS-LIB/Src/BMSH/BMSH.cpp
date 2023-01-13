@@ -121,16 +121,20 @@ void BMSH::update_temperatures() {
 }
 
 void BMSH::start_balancing() {
-	uint8_t write_buffer[256];
 	for (LTC6811 external_adc : external_adcs) {
-		// TODO
+		check_batteries(external_adc);
 	}
 }
 
 void BMSH::update_configuration(){
-	array<uint8_t, DATA_STREAM> data_stream = { 0 };
+	constexpr uint8_t data_size = LTC6811::DATA_REGISTER_LENGTH * EXTERNAL_ADCS;
+	array<uint8_t, data_size> data_stream = { 0 };
+	uint8_t offset = 0;
 	for (LTC6811 external_adc : external_adcs) {
-
+		for (bitset<8> data_register : external_adc.peripheral_configuration.register_group) {
+			data_stream[offset] = (uint8_t)data_register.to_ulong(); // Refactor this, is horrible.
+			offset++;
+		}
 	}
 	send_command(WRITE_CONFIGURATION_REGISTER_GROUP, data_stream);
 }
@@ -199,5 +203,23 @@ void BMSH::add_message_data(span<uint8_t> message, span<uint8_t> data) {
 
 		add_pec(message.subspan(index-register_length, command_length));
 		index += 2;
+	}
+}
+
+void BMSH::check_batteries(LTC6811 external_adc) {
+	for (Battery battery : external_adc.batteries) {
+		uint8_t cell_offset = 0;
+
+		if(not battery.needs_balance()) {
+			cell_offset += 6;
+			continue;
+		}
+
+		for(uint8_t i : iota(0, Battery::CELLS)) {
+			if (*battery.cells[i] > *battery.minimum_cell) {
+				external_adc.peripheral_configuration.set_cell_discharging(cell_offset+i, true);
+			}
+		}
+		cell_offset += 6;
 	}
 }

@@ -41,7 +41,7 @@ private:
 			PERMITTED = 1
 		};
 	static const uint8_t EXTERNAL_ADCS = 5;
-	static const uint8_t DATA_STREAM = LTC6811::COMMAND_DATA_LENGTH*EXTERNAL_ADCS;
+	static const uint8_t DATA_STREAM = LTC6811::COMMAND_DATA_LENGTH * EXTERNAL_ADCS;
 
 public:
 	enum COMMAND : uint16_t {

@@ -41,5 +41,5 @@ private:
 	uint16_t get_cell_soc(uint16_t cell);
 	float get_charging_maximum_voltage();
 
-	static uint16_t soc[901];
+	static const uint16_t soc[901];
 };

@@ -12,6 +12,6 @@
 #include "stm32h7xx_hal.h"
 
 /** Functions ----------------------------------------------------------------*/
-void myFunction(void)
+void my_function(void)
 {
 }

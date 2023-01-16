@@ -80,9 +80,9 @@ array<voltage_register_group, BMSH::EXTERNAL_ADCS> BMSH::read_voltage_register(C
 
 	static array<voltage_register_group, EXTERNAL_ADCS> voltages;
 	for(int adc_number : iota(EXTERNAL_ADCS)) {
-		span adc_voltages(voltage_data.begin() + REGISTER_LENGTH*adc_number, voltage_data.begin() + REGISTER_LENGTH*(adc_number+1));
+		span adc_voltages(voltage_data.begin() + REGISTER_LENGTH * adc_number, voltage_data.begin() + REGISTER_LENGTH * (adc_number + 1));
 		if (not is_pec_correct(adc_voltages)) {
-			//TODO: Error Handler
+			//TODO: Fault, (Protección)
 		}
 
 		voltages[adc_number] = parse_voltage_register(adc_voltages);
@@ -91,6 +91,7 @@ array<voltage_register_group, BMSH::EXTERNAL_ADCS> BMSH::read_voltage_register(C
 	return voltages;
 }
 
+//TODO: revisar
 void BMSH::update_cell_voltages() {
 	start_adc_conversion_all_cells();
 
@@ -120,6 +121,7 @@ void BMSH::update_temperatures() {
 	});
 }
 
+//TODO:
 void BMSH::start_balancing() {
 	for (LTC6811 external_adc : external_adcs) {
 		check_batteries(external_adc);
@@ -132,7 +134,7 @@ void BMSH::update_configuration(){
 	uint8_t offset = 0;
 	for (LTC6811 external_adc : external_adcs) {
 		for (bitset<8> data_register : external_adc.peripheral_configuration.register_group) {
-			data_stream[offset] = (uint8_t)data_register.to_ulong(); // Refactor this, is horrible.
+			data_stream[offset] = (uint8_t)data_register.to_ulong(); //TODO: Refactor this, is horrible.
 			offset++;
 		}
 	}
@@ -164,7 +166,6 @@ void BMSH::parse_command(span<uint8_t> tx_message, COMMAND command) {
 }
 
 void BMSH::parse_temperatures(array<voltage_register_group, BMSH::EXTERNAL_ADCS> temperatures_register1, array<voltage_register_group, BMSH::EXTERNAL_ADCS> temperatures_register2) {
-	for (int adc_number=0; adc_number<EXTERNAL_ADCS; adc_number++)
 	for (uint8_t adc_number : iota(EXTERNAL_ADCS)) {
 		external_adcs[adc_number].temperatures[0] = temperatures_register1[adc_number];
 		external_adcs[adc_number].temperatures[1] = temperatures_register2[adc_number];

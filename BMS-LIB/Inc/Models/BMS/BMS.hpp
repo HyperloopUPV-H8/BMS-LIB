@@ -7,6 +7,9 @@
 
 #pragma once
 
+#include "ST-LIB.hpp"
+#include "LTC681X/LTC681X.hpp"
+
 class BMS {
 protected:
 	enum ADC_MODE {
@@ -28,7 +31,7 @@ protected:
 			PERMITTED = 1
 		};
 	static const uint8_t EXTERNAL_ADCS = 5;
-	static const uint8_t DATA_STREAM = LTC6811::COMMAND_DATA_LENGTH*EXTERNAL_ADCS;
+	static const uint8_t DATA_STREAM = LTC681X::COMMAND_DATA_LENGTH*EXTERNAL_ADCS;
 public:
 	enum COMMAND : uint16_t {
 		START_SPI_COMMUNICATION = 0b11100100011,

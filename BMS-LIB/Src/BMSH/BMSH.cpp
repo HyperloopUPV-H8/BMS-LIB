@@ -7,7 +7,7 @@
 
 #include <BMSH/BMSH.hpp>
 
-BMSH::COMMAND BMSH::cell_voltage_registers[6] = {READ_CELL_VOLTAGE_REGISTER_A, READ_CELL_VOLTAGE_REGISTER_B, READ_CELL_VOLTAGE_REGISTER_C, READ_CELL_VOLTAGE_REGISTER_D, READ_CELL_VOLTAGE_REGISTER_E, READ_CELL_VOLTAGE_REGISTER_F};
+BMSH::COMMAND BMSH::cell_voltage_registers[6] = {READ_CELL_VOLTAGE_REGISTER_A, READ_CELL_VOLTAGE_REGISTER_B, READ_CELL_VOLTAGE_REGISTER_C, READ_CELL_VOLTAGE_REGISTER_D};
 
 
 /************************************************
@@ -29,7 +29,7 @@ void BMSH::send_command(COMMAND command) {
 	array<uint8_t, message_size> tx_message;
 
 	parse_command(tx_message, command);
-	add_pec(tx_message, LTC6811::COMMAND_LENGTH);
+	add_pec(tx_message);
 
 	SPI::transmit(spi_instance, tx_message);
 }
@@ -38,8 +38,9 @@ void BMSH::send_command(COMMAND command, span<uint8_t> data) {
 	constexpr uint8_t message_size = LTC6811::COMMAND_LENGTH + PEC15::LENGTH + BMSH::DATA_STREAM;
 	array<uint8_t, message_size> tx_message;
 
-	parse_command(tx_message, command);
-	add_pec(tx_message, LTC6811::COMMAND_LENGTH);
+	span<uint8_t> command_with_pec(tx_message.begin(), tx_message.begin()+4);
+	parse_command(command_with_pec, command);
+	add_pec(command_with_pec);
 
 	span<uint8_t> data_address{tx_message.begin()+4, tx_message.end()};
 	add_message_data(data_address, data);
@@ -61,10 +62,10 @@ uint8_t BMSH::check_adc_conversion_status() {
 }
 
 void BMSH::read_cell_voltages() {
-	uint8_t register_number = 0;
+	uint8_t voltage_number = 0;
 	for (COMMAND voltage_register : cell_voltage_registers) {
-		parse_voltage_group(voltage_register, register_number);
-		register_number++;
+		parse_voltage_group(voltage_register, voltage_number);
+		voltage_number++;
 	}
 }
 
@@ -79,14 +80,9 @@ array<voltage_register_group, BMSH::EXTERNAL_ADCS> BMSH::read_voltage_register(C
 
 	static array<voltage_register_group, EXTERNAL_ADCS> voltages;
 	for(int adc_number : iota(EXTERNAL_ADCS)) {
-//		uint8_t* start_position = voltages.begin() + REGISTER_LENGTH*adc_number;
-//		uint8_t* end_position = voltages.begin() + REGISTER_LENGTH*(adc_number+1);
-//								voltage.begin + REGISTER_LENGTH*adc_number + REGISTER_LENGTH;
-//
-		span adc_voltages(voltage_data.begin() + REGISTER_LENGTH*adc_number,
-				voltage_data.begin() + REGISTER_LENGTH*(adc_number+1));
+		span adc_voltages(voltage_data.begin() + REGISTER_LENGTH * adc_number, voltage_data.begin() + REGISTER_LENGTH * (adc_number + 1));
 		if (not is_pec_correct(adc_voltages)) {
-			//TODO: Error Handler
+			//TODO: Fault, (Protección)
 		}
 
 		voltages[adc_number] = parse_voltage_register(adc_voltages);
@@ -95,6 +91,7 @@ array<voltage_register_group, BMSH::EXTERNAL_ADCS> BMSH::read_voltage_register(C
 	return voltages;
 }
 
+//TODO: revisar
 void BMSH::update_cell_voltages() {
 	start_adc_conversion_all_cells();
 
@@ -124,13 +121,25 @@ void BMSH::update_temperatures() {
 	});
 }
 
+//TODO:
 void BMSH::start_balancing() {
-	uint8_t write_buffer[256];
 	for (LTC6811 external_adc : external_adcs) {
-		// TODO
+		check_batteries(external_adc);
 	}
 }
 
+void BMSH::update_configuration(){
+	constexpr uint8_t data_size = LTC6811::DATA_REGISTER_LENGTH * EXTERNAL_ADCS;
+	array<uint8_t, data_size> data_stream = { 0 };
+	uint8_t offset = 0;
+	for (LTC6811 external_adc : external_adcs) {
+		for (bitset<8> data_register : external_adc.peripheral_configuration.register_group) {
+			data_stream[offset] = (uint8_t)data_register.to_ulong(); //TODO: Refactor this, is horrible.
+			offset++;
+		}
+	}
+	send_command(WRITE_CONFIGURATION_REGISTER_GROUP, data_stream);
+}
 
 /************************************************
  *              PRIVATE FUNCTIONS
@@ -157,11 +166,17 @@ void BMSH::parse_command(span<uint8_t> tx_message, COMMAND command) {
 }
 
 void BMSH::parse_temperatures(array<voltage_register_group, BMSH::EXTERNAL_ADCS> temperatures_register1, array<voltage_register_group, BMSH::EXTERNAL_ADCS> temperatures_register2) {
-	for (int adc_number=0; adc_number<EXTERNAL_ADCS; adc_number++)
 	for (uint8_t adc_number : iota(EXTERNAL_ADCS)) {
 		external_adcs[adc_number].temperatures[0] = temperatures_register1[adc_number];
 		external_adcs[adc_number].temperatures[1] = temperatures_register2[adc_number];
 	}
+}
+
+void BMSH::add_pec(span<uint8_t> data_stream) {
+	span<uint8_t> data_without_pec{data_stream.begin(), data_stream.end()-2};
+	uint16_t pec = PEC15::calculate(data_without_pec);
+	data_stream.end()[-2] = (uint8_t)(pec >> 8);
+	data_stream.end()[-1] = (uint8_t)(pec);
 }
 
 bool BMSH::is_pec_correct(span<uint8_t> data_stream){
@@ -181,13 +196,31 @@ void BMSH::add_message_data(span<uint8_t> message, span<uint8_t> data) {
 	const uint8_t register_length = LTC6811::DATA_REGISTER_LENGTH;
 	const uint8_t command_length = LTC6811::COMMAND_DATA_LENGTH;
 
-	for (uint8_t external_adc : iota(EXTERNAL_ADCS-1) | reverse) {
+	for (uint8_t external_adc : iota(0, (int)EXTERNAL_ADCS) | reverse) {
 		uint8_t register_position = register_length * external_adc;
-		for (uint8_t current_byte : iota(register_length)) {
+		for (uint8_t current_byte : iota(0, (int)register_length)) {
 			message[index++] = data[register_position + current_byte];
 		}
 
-		add_pec(message.subspan(register_position), command_length);
+		add_pec(message.subspan(index-register_length, command_length));
 		index += 2;
+	}
+}
+
+void BMSH::check_batteries(LTC6811 external_adc) {
+	for (Battery battery : external_adc.batteries) {
+		uint8_t cell_offset = 0;
+
+		if(not battery.needs_balance()) {
+			cell_offset += 6;
+			continue;
+		}
+
+		for(uint8_t i : iota(0, Battery::CELLS)) {
+			if (*battery.cells[i] > *battery.minimum_cell) {
+				external_adc.peripheral_configuration.set_cell_discharging(cell_offset+i, true);
+			}
+		}
+		cell_offset += 6;
 	}
 }

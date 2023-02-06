@@ -6,6 +6,7 @@
  */
 
 #include "BMSA/BMSA.hpp"
+#include "ErrorHandler/ErrorHandler.hpp"
 
 BMSA::BMSA(
 		array<reference_wrapper<Pin>, 5> dclv_pins,
@@ -19,7 +20,7 @@ BMSA::BMSA(
 	for (Pin& battery_temperature_pin : battery_temperature_pins) {
 		optional<uint8_t> optional_value = ADC::inscribe(battery_temperature_pin);
 		if (not optional_value) {
-			ErrorHandlerModel::ErrorHandler("The pin %d is not in the adc_pins", battery_temperature_pin.gpio_pin);
+			ErrorHandler("The pin %d is not in the adc_pins", battery_temperature_pin.gpio_pin);
 		}
 	}
 }

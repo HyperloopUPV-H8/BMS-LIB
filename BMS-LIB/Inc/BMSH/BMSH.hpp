@@ -27,8 +27,6 @@ private:
 	static COMMAND cell_voltage_registers[6];
 	array<voltage_register_group, BMSH::EXTERNAL_ADCS> read_voltage_register(COMMAND voltage_register);
 
-	LTC6811 external_adcs[EXTERNAL_ADCS];
-
 	voltage_register_group parse_voltage_register(span<uint8_t> voltage_data);
 	void parse_voltage_group(COMMAND voltage_register, uint8_t voltage_number);
 	void parse_command(span<uint8_t> tx_message, COMMAND command);
@@ -39,6 +37,21 @@ private:
 
 	void add_message_data(span<uint8_t> message, span<uint8_t> data);
 
+	void check_batteries(LTC6811 external_adc);
+
+public:
+
+	BMSH(uint8_t spi_instance);
+
+	LTC6811 external_adcs[EXTERNAL_ADCS];
+
+	void wake_up();
+
+	void send_command(COMMAND command);
+	void send_command(COMMAND command, span<uint8_t> tx_data);
+	void send_receive_command(COMMAND command, span<uint8_t> rx_data);
+	void send_receive_command(COMMAND command, span<uint8_t> tx_data, span<uint8_t> rx_data);
+
 	void start_adc_conversion_all_cells();
 	uint8_t check_adc_conversion_status();
 	void read_cell_voltages();
@@ -46,19 +59,12 @@ private:
 	void start_adc_conversion_temperatures();
 	void read_temperatures();
 
-	void check_batteries(LTC6811 external_adc);
-
-public:
-
-	BMSH(uint8_t spi_instance);
-
-	void wake_up();
-	void start_spi_communication();
-	void send_command(COMMAND command);
-	void send_command(COMMAND command, span<uint8_t> tx_data);
-
 	void update_cell_voltages();
 	void update_temperatures();
 	void start_balancing();
 	void update_configuration();
+
+	float get_cell(uint8_t cell);
+	LTC681X::configuration& get_config(uint8_t adc_number);
+
 };

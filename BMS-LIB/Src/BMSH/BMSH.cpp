@@ -14,7 +14,16 @@ BMSH::COMMAND BMSH::cell_voltage_registers[6] = {READ_CELL_VOLTAGE_REGISTER_A, R
  *              PUBLIC FUNCTIONS
  ***********************************************/
 
-BMSH::BMSH(uint8_t spi_instance) : spi_instance(spi_instance) {}
+BMSH::BMSH(SPI::Peripheral& spi_peripheral) {
+	optional<uint8_t> spi_optional = SPI::inscribe(spi_peripheral);
+
+	if (not spi_optional) {
+		ErrorHandler("SPI peripheral of BMSH did not register correctly");
+		return;
+	}
+
+	spi_instance = spi_optional.value();
+}
 
 void BMSH::wake_up() {
 	SPI::transmit(spi_instance, 1);

@@ -42,7 +42,7 @@ private:
 
 public:
 
-	BMSH(uint8_t spi_instance);
+	BMSH(SPI::Peripheral& spi_peripheral);
 
 	LTC6811 external_adcs[EXTERNAL_ADCS];
 

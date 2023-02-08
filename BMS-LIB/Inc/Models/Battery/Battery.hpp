@@ -8,6 +8,7 @@
 #pragma once
 
 #include "ST-LIB.hpp"
+#include "SOC/SOC.hpp"
 
 using std::views::iota;
 
@@ -20,9 +21,6 @@ struct voltage_register_group {
 class Battery {
 public:
 	static const int CELLS = 6;
-	static const uint8_t MAX_SOC_DIFFERENCE = 100;
-	static const uint8_t MIN_CELL_VOLTAGE = 3.4;
-	static const uint8_t MAX_CELL_VOLTAGE = 4.2;
 
 	uint16_t* cells[CELLS];
 	uint16_t* minimum_cell;

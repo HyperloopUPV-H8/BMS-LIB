@@ -239,7 +239,9 @@ void BMSH::check_batteries(LTC6811 external_adc) {
 		}
 
 		for(uint8_t i : iota(0, (int)Battery::CELLS)) {
-			if (*battery.cells[i] > *battery.minimum_cell) {
+			uint16_t& min_cell = *battery.minimum_cell;
+			uint16_t& curr_cell = *battery.cells[i];
+			if (SOC::calculate(curr_cell) - SOC::calculate(min_cell) > SOC::MAX_DIFFERENCE) {
 				external_adc.peripheral_configuration.set_cell_discharging(cell_offset+i, true);
 			}
 		}

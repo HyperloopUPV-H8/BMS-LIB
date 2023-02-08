@@ -10,6 +10,7 @@
 #include "BMS/BMS.hpp"
 #include "LTC6811/LTC6811.hpp"
 #include "PEC15/PEC15.hpp"
+#include "SOC/SOC.hpp"
 
 using std::begin;
 using std::end;

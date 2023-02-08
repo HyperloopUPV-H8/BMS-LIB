@@ -30,7 +30,7 @@ protected:
 			NOT_PERMITTED = 0,
 			PERMITTED = 1
 		};
-	static const uint8_t EXTERNAL_ADCS = 1;
+	static const uint8_t EXTERNAL_ADCS = 2;
 	static const uint8_t DATA_STREAM = LTC681X::COMMAND_DATA_LENGTH*EXTERNAL_ADCS;
 public:
 	enum COMMAND : uint16_t {

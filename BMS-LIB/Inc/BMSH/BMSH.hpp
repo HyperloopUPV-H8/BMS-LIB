@@ -25,7 +25,7 @@ class BMSH: public BMS {
 private:
 	uint8_t spi_instance;
 
-	static COMMAND cell_voltage_registers[6];
+	static COMMAND cell_voltage_registers[4];
 	array<voltage_register_group, BMSH::EXTERNAL_ADCS> read_voltage_register(COMMAND voltage_register);
 
 	voltage_register_group parse_voltage_register(span<uint8_t> voltage_data);

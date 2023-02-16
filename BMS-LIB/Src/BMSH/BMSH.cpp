@@ -7,7 +7,7 @@
 
 #include <BMSH/BMSH.hpp>
 
-BMSH::COMMAND BMSH::cell_voltage_registers[6] = {READ_CELL_VOLTAGE_REGISTER_A, READ_CELL_VOLTAGE_REGISTER_B, READ_CELL_VOLTAGE_REGISTER_C, READ_CELL_VOLTAGE_REGISTER_D};
+BMSH::COMMAND BMSH::cell_voltage_registers[4] = {READ_CELL_VOLTAGE_REGISTER_A, READ_CELL_VOLTAGE_REGISTER_B, READ_CELL_VOLTAGE_REGISTER_C, READ_CELL_VOLTAGE_REGISTER_D};
 
 
 /************************************************
@@ -54,7 +54,7 @@ void BMSH::send_command(COMMAND command, span<uint8_t> data) {
 }
 
 void BMSH::send_receive_command(COMMAND command, span<uint8_t> rx) {
-	constexpr uint8_t message_size = LTC6811::COMMAND_LENGTH + PEC15::LENGTH;
+	constexpr uint8_t message_size =LTC6811::COMMAND_LENGTH  + PEC15::LENGTH;
 	array<uint8_t, message_size> tx_message;
 
 	parse_command(tx_message, command);
@@ -102,7 +102,7 @@ array<voltage_register_group, BMSH::EXTERNAL_ADCS> BMSH::read_voltage_register(C
 	const uint8_t REGISTER_LENGTH = LTC6811::DATA_REGISTER_LENGTH + PEC15::LENGTH;
 
 	constexpr size_t voltage_data_size = REGISTER_LENGTH*EXTERNAL_ADCS;
-	array<uint8_t, voltage_data_size> voltage_data;
+	array<uint8_t, voltage_data_size> voltage_data = { 0 };
 
 	send_receive_command(voltage_register, voltage_data);
 

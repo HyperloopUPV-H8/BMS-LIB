@@ -19,4 +19,6 @@ public:
 	voltage_register_group cell_voltages[REGISTER_GROUPS];
 	voltage_register_group temperatures[2];
 	Battery batteries[2];
+
+	float internal_temperature;
 };

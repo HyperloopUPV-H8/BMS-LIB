@@ -11,6 +11,6 @@
 
 class Cell {
 public:
-	static const uint8_t MIN_VOLTAGE = 3.4;
-	static const uint8_t MAX_VOLTAGE = 4.2;
+	static constexpr float MIN_VOLTAGE = 3.4;
+	static constexpr float MAX_VOLTAGE = 4.2;
 };

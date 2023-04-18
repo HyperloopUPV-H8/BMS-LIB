@@ -21,6 +21,7 @@ struct voltage_register_group {
 class Battery {
 public:
 	static const int CELLS = 6;
+	static const int MAX_TEMPERATURE = 60;
 
 	uint16_t* cells[CELLS];
 	uint16_t* minimum_cell;

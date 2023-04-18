@@ -190,6 +190,8 @@ void BMSH::start_balancing() {
 	for (uint8_t i : iota(0, (int)BMS::EXTERNAL_ADCS)) {
 		check_batteries(external_adcs[i]);
 	}
+
+	wake_up();
 	update_configuration();
 }
 
@@ -287,8 +289,11 @@ void BMSH::check_batteries(LTC6811& external_adc) {
 		for(uint8_t i : iota(0, (int)Battery::CELLS)) {
 			uint16_t& min_cell = *battery.minimum_cell;
 			uint16_t& curr_cell = *battery.cells[i];
-			if (SOC::calculate(curr_cell) - SOC::calculate(min_cell) > SOC::MAX_DIFFERENCE) {
+			if (int(SOC::calculate(curr_cell)) - int(SOC::calculate(min_cell)) > SOC::MAX_DIFFERENCE) {
 				external_adc.peripheral_configuration.set_cell_discharging(cell_offset+i, true);
+			}
+			else if (int(SOC::calculate(curr_cell)) - int(SOC::calculate(min_cell)) < SOC::MAX_DIFFERENCE/2){
+				external_adc.peripheral_configuration.set_cell_discharging(cell_offset+i, false);
 			}
 		}
 

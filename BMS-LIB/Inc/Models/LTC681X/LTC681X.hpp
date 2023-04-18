@@ -35,12 +35,14 @@ public:
 		SEVENTY_FIVE_MINUTES = 13,
 		NINETY_MINUTES = 14,
 		TWO_HOURS = 15
-
 	};
 
 	static const uint8_t DATA_REGISTER_LENGTH = 6;
 	static const uint8_t COMMAND_LENGTH = 2;
 	static const uint8_t COMMAND_DATA_LENGTH = DATA_REGISTER_LENGTH + PEC15::LENGTH;
+
+	static const uint8_t MAX_TEMPERATURE = 80;
+	static const uint8_t WARNING_TEMPERATURE = 60;
 
 	class configuration {
 	public:

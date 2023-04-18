@@ -16,6 +16,6 @@ uint16_t SOC::calculate(uint16_t raw_voltage) {
 		return 0;
 	}
 
-	uint16_t soc_index = (raw_voltage - Cell::MIN_VOLTAGE) * 1000;
+	uint16_t soc_index = (real_voltage - Cell::MIN_VOLTAGE) * 1000;
 	return voltage_to_soc[soc_index];
 }

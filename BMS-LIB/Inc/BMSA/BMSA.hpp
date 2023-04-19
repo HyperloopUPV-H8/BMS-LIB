@@ -19,6 +19,7 @@ private:
 
 public:
 	BMSA(
+			uint8_t spi_instance,
 			array<reference_wrapper<Pin>, 5> dclv_pins,
 			array<reference_wrapper<Pin>, 4> battery_temperature_pins,
 			array<reference_wrapper<Pin>, 4> charger_temperature_pins,

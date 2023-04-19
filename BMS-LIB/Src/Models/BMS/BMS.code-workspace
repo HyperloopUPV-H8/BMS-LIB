@@ -1,0 +1,15 @@
+{
+	"folders": [
+		{
+			"path": "../../../.."
+		},
+		{
+			"path": "../../../../../ST-LIB"
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"ranges": "cpp"
+		}
+	}
+}

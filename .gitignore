@@ -3,3 +3,6 @@ BMS-LIB/Debug
 .ccls-cache/
 BMS-LIB/.settings/
 BMS-LIB/.cproject/
+ST-LIB
+build
+!build/build.sh

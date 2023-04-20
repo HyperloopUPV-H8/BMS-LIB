@@ -41,6 +41,7 @@ public:
 	static const uint8_t COMMAND_LENGTH = 2;
 	static const uint8_t COMMAND_DATA_LENGTH = DATA_REGISTER_LENGTH + PEC15::LENGTH;
 
+	static const uint8_t MIN_TEMPERATURE = 0;
 	static const uint8_t MAX_TEMPERATURE = 80;
 	static const uint8_t WARNING_TEMPERATURE = 60;
 

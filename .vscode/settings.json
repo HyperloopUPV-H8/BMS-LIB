@@ -1,5 +1,6 @@
 {
     "files.associations": {
         "ranges": "cpp"
-    }
+    },
+    "cmake.sourceDirectory": "/home/alejandro/projects/BMS/OBCCU"
 }

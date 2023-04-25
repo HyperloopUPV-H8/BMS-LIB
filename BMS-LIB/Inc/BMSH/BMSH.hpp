@@ -40,6 +40,7 @@ public:
 	void update_cell_voltages();
 	void update_temperatures();
 	void start_balancing();
+	void stop_balancing();
 	void update_configuration();
 
 	float get_cell(uint8_t cell);

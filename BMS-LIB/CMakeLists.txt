@@ -42,7 +42,8 @@ target_compile_options(${BMS-LIB} PUBLIC
   -mfloat-abi=hard
   -mthumb
   
-  -O3
+  -O0
+  -g3
   -ffunction-sections
   -fdata-sections
   -fno-exceptions

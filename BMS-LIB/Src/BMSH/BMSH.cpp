@@ -106,6 +106,17 @@ void BMSH::start_balancing() {
 	update_configuration();
 }
 
+void BMSH::stop_balancing() {
+	for (uint8_t i : iota(0, (int)BMS::EXTERNAL_ADCS)) {
+		for (uint8_t j : iota(0, (int)Battery::CELLS)) {
+			external_adcs[i].peripheral_configuration.set_cell_discharging(j, false);
+		}
+	}
+
+	wake_up();
+	update_configuration();
+}
+
 void BMSH::update_configuration(){
 	constexpr uint8_t data_size = LTC6811::DATA_REGISTER_LENGTH * EXTERNAL_ADCS;
 	array<uint8_t, data_size> data_stream = { 0 };

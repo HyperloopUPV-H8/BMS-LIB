@@ -7,7 +7,7 @@
 
 #include "SOC/SOC.hpp"
 
-uint16_t SOC::calculate(uint16_t raw_voltage) {
+float SOC::calculate(float raw_voltage) {
 	float real_voltage = raw_voltage / 10000.0;
 
 	//Cambiar por Protection Manager
@@ -17,5 +17,5 @@ uint16_t SOC::calculate(uint16_t raw_voltage) {
 	}
 
 	uint16_t soc_index = (real_voltage - Cell::MIN_VOLTAGE) * 1000;
-	return voltage_to_soc[soc_index];
+	return voltage_to_soc[soc_index] / 100.0;
 }

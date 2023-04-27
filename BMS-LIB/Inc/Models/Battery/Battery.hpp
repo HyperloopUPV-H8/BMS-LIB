@@ -13,9 +13,9 @@
 using std::views::iota;
 
 struct voltage_register_group {
-	uint16_t voltage1;
-	uint16_t voltage2;
-	uint16_t voltage3;
+	float voltage1;
+	float voltage2;
+	float voltage3;
 };
 
 class Battery {
@@ -24,21 +24,20 @@ public:
 	static const int MIN_TEMPERATURE = 0;
 	static const int MAX_TEMPERATURE = 60;
 
-	uint16_t* cells[CELLS];
-	uint16_t* minimum_cell;
-	uint16_t* maximum_cell;
+	float* cells[CELLS];
+	float* minimum_cell;
+	float* maximum_cell;
 
-	uint16_t* temperature1;
-	uint16_t* temperature2;
+	float* temperature1;
+	float* temperature2;
 
 	Battery() = default;
-	Battery(voltage_register_group* cell_register1, voltage_register_group* cell_register2, uint16_t* temperature1, uint16_t* temperature2);
+	Battery(voltage_register_group* cell_register1, voltage_register_group* cell_register2, float* temperature1, float* temperature2);
 
 	bool needs_balance();
-	uint16_t get_soc();
+	float get_soc();
 
 private:
-	uint16_t get_cell_soc(uint16_t cell);
 	float get_charging_maximum_voltage();
 
 	static const uint16_t soc[901];

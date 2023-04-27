@@ -7,7 +7,7 @@
 
 #include "Battery/Battery.hpp"
 
-Battery::Battery(voltage_register_group* voltage_register1, voltage_register_group* voltage_register2, uint16_t* temp1, uint16_t* temp2) {
+Battery::Battery(voltage_register_group* voltage_register1, voltage_register_group* voltage_register2, float* temp1, float* temp2) {
 	cells[0] = &voltage_register1->voltage1;
 	cells[1] = &voltage_register1->voltage2;
 	cells[2] = &voltage_register1->voltage3;
@@ -21,7 +21,7 @@ Battery::Battery(voltage_register_group* voltage_register1, voltage_register_gro
 }
 
 bool Battery::needs_balance() {
-	for (uint16_t* cell : cells) {
+	for (float* cell : cells) {
 		if (*cell > *maximum_cell) maximum_cell = cell;
 		if (*cell < *minimum_cell) minimum_cell = cell;
 	}
@@ -33,10 +33,10 @@ bool Battery::needs_balance() {
 	return false;
 }
 
-uint16_t Battery::get_soc() {
-	uint16_t min_value = 10000;
-	for (uint16_t* cell : cells) {
-		uint16_t cell_soc = get_cell_soc(*cell);
+float Battery::get_soc() {
+	float min_value = 100;
+	for (float* cell : cells) {
+		float cell_soc = SOC::calculate(*cell);
 		if (cell_soc < min_value) min_value = cell_soc;
 	}
 

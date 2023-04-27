@@ -16,5 +16,5 @@ private:
 
 public:
 	static const uint8_t MAX_DIFFERENCE = 100;
-	static uint16_t calculate(uint16_t raw_voltage);
+	static float calculate(float raw_voltage);
 };

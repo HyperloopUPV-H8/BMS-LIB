@@ -21,6 +21,7 @@ private:
 
 public:
 
+	BMSH() = default;
 	BMSH(SPI::Peripheral& spi_peripheral);
 
 	LTC6811 external_adcs[EXTERNAL_ADCS];
@@ -47,4 +48,6 @@ public:
 	float get_gpio(uint8_t gpio);
 	LTC681X::configuration& get_config(uint8_t adc_number);
 
+	void parse_voltage_group(COMMAND voltage_register, uint8_t voltage_number);
+	void parse_temperatures(array<voltage_register_group, BMS::EXTERNAL_ADCS> temperatures_register1, array<voltage_register_group, BMS::EXTERNAL_ADCS> temperatures_register2);
 };

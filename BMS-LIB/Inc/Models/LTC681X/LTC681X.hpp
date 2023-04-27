@@ -71,5 +71,4 @@ public:
 
 	configuration peripheral_configuration;
 	float internal_temperature;
-
 };

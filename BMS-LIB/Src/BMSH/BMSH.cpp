@@ -164,7 +164,7 @@ void BMSH::check_batteries(LTC6811& external_adc) {
 float BMSH::get_cell(uint8_t cell) {
 	LTC6811& adc = external_adcs[cell/12];
 	Battery& battery = adc.batteries[cell%12/6];
-	return *battery.cells[cell%12%6] / 10000.0;
+	return *battery.cells[cell%12%6];
 }
 
 float BMSH::get_gpio(uint8_t gpio) {

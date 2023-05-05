@@ -89,9 +89,9 @@ void BMS::add_message_data(span<uint8_t> message, span<uint8_t> data) {
 
 voltage_register_group BMS::parse_voltage_register(span<uint8_t> voltage_data) {
 	return {
-		(float)(voltage_data[0] + ((uint16_t)voltage_data[1] << 8) / 10000.0),
-		(float)(voltage_data[2] + ((uint16_t)voltage_data[3] << 8) / 10000.0),
-		(float)(voltage_data[4] + ((uint16_t)voltage_data[5] << 8) / 10000.0)
+		(voltage_data[0] + ((uint16_t)voltage_data[1] << 8)) / 10000.0,
+		(voltage_data[2] + ((uint16_t)voltage_data[3] << 8)) / 10000.0,
+		(voltage_data[4] + ((uint16_t)voltage_data[5] << 8)) / 10000.0
 	};
 }
 
@@ -114,4 +114,21 @@ array<voltage_register_group, BMS::EXTERNAL_ADCS> BMS::read_voltage_register(COM
 	}
 
 	return voltages;
+}
+
+array<uint16_t, BMS::EXTERNAL_ADCS> BMS::get_temperatures() {
+	constexpr uint8_t REGISTER_LENGTH = LTC681X::DATA_REGISTER_LENGTH + PEC15::LENGTH;
+	constexpr uint8_t TEMPERATURE_DATA_SIZE = REGISTER_LENGTH*EXTERNAL_ADCS;
+	array<uint8_t, TEMPERATURE_DATA_SIZE> temperature_data;
+
+	send_receive_command(READ_STATUS_REGISTER_GROUP_A, temperature_data);
+	static array<uint16_t, EXTERNAL_ADCS> temperatures;
+	for(int adc_number : iota(0, BMS::EXTERNAL_ADCS)) {
+		span adc_temperatures(temperature_data.begin() + REGISTER_LENGTH * adc_number, temperature_data.begin() + REGISTER_LENGTH * (adc_number + 1));
+		if (not is_pec_correct(adc_temperatures)) {
+			//TODO: Fault, (Protección)
+		}
+		temperatures[adc_number] = (uint16_t)adc_temperatures[2] + ((uint16_t)adc_temperatures[3] << 8);
+	}
+		return temperatures;
 }

@@ -7,7 +7,6 @@
 
 #include <BMSH/BMSH.hpp>
 
-BMSH::COMMAND BMSH::cell_voltage_registers[4] = {READ_CELL_VOLTAGE_REGISTER_A, READ_CELL_VOLTAGE_REGISTER_B, READ_CELL_VOLTAGE_REGISTER_C, READ_CELL_VOLTAGE_REGISTER_D};
 
 
 /************************************************
@@ -25,23 +24,6 @@ BMSH::BMSH(SPI::Peripheral& spi_peripheral) {
 	spi_instance = spi_optional.value();
 }
 
-void BMSH::wake_up() {
-	SPI::transmit(spi_instance, 1);
-}
-
-
-void BMSH::start_adc_conversion_all_cells() {
-	send_command(START_ADC_CONVERSION_ALL_CELLS);
-}
-
-void BMSH::measure_internal_device_parameters() {
-	send_command(MEASURE_INTERNAL_DEVICE_PARAMETERS);
-}
-
-void BMSH::start_adc_conversion_gpio() {
-	send_command(START_ADC_CONVERSION_ALL_GPIO);
-}
-
 uint8_t BMSH::check_adc_conversion_status() {
 	send_command(CHECK_ADC_CONVERSION_STATUS);
 
@@ -51,12 +33,8 @@ uint8_t BMSH::check_adc_conversion_status() {
 	return(adc_state.data()[0]);
 }
 
-void BMSH::read_cell_voltages() {
-	uint8_t voltage_number = 0;
-	for (COMMAND voltage_register : cell_voltage_registers) {
-		parse_voltage_group(voltage_register, voltage_number);
-		voltage_number++;
-	}
+span<BMS::COMMAND> BMSH::get_cell_voltage_registers() {
+	return cell_voltage_registers;
 }
 
 void BMSH::read_internal_temperature() {
@@ -177,16 +155,17 @@ float BMSH::get_gpio(uint8_t gpio) {
 	}
 }
 
-void BMSH::parse_voltage_group(COMMAND voltage_register, uint8_t voltage_number) {
-	array<voltage_register_group, BMSH::EXTERNAL_ADCS> voltages = read_voltage_register(voltage_register);
-	for (int adc_number=0; adc_number<EXTERNAL_ADCS; adc_number++) {
-		external_adcs[adc_number].cell_voltages[voltage_number] = voltages[adc_number];
-	}
-}
+
 
 void BMSH::parse_temperatures(array<voltage_register_group, BMSH::EXTERNAL_ADCS> temperatures_register1, array<voltage_register_group, BMSH::EXTERNAL_ADCS> temperatures_register2) {
 	for (uint8_t adc_number : iota(EXTERNAL_ADCS)) {
 		external_adcs[adc_number].temperatures[0] = temperatures_register1[adc_number];
 		external_adcs[adc_number].temperatures[1] = temperatures_register2[adc_number];
+	}
+}
+
+void BMSH::copy_voltages_to_external_adcs(array<voltage_register_group, BMS::EXTERNAL_ADCS> voltages, uint8_t voltage_number) {
+	for (int adc_number : iota(0, BMSH::EXTERNAL_ADCS)) {
+		external_adcs[adc_number].cell_voltages[voltage_number] = voltages[adc_number];
 	}
 }

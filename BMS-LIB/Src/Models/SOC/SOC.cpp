@@ -7,9 +7,7 @@
 
 #include "SOC/SOC.hpp"
 
-float SOC::calculate(float raw_voltage) {
-	float real_voltage = raw_voltage / 10000.0;
-
+float SOC::calculate(float real_voltage) {
 	//Cambiar por Protection Manager
 	if (real_voltage > Cell::MAX_VOLTAGE or real_voltage < Cell::MIN_VOLTAGE) {
 		//TODO: Fault Handler (Es una protección)

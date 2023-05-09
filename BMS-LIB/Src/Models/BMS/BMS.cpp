@@ -1,5 +1,7 @@
 #include "BMS/BMS.hpp"
 
+array<BMS::COMMAND, 4> BMS::cell_voltage_registers = {READ_CELL_VOLTAGE_REGISTER_A, READ_CELL_VOLTAGE_REGISTER_B, READ_CELL_VOLTAGE_REGISTER_C, READ_CELL_VOLTAGE_REGISTER_D};
+
 void BMS::send_command(COMMAND command) {
 	constexpr uint8_t message_size = LTC681X::COMMAND_LENGTH + PEC15::LENGTH;
 	array<uint8_t, message_size> tx_message;
@@ -46,6 +48,14 @@ void BMS::send_receive_command(COMMAND command, span<uint8_t> tx_data, span<uint
 	add_message_data(data_address, tx_data);
 
 	SPI::transmit_and_receive(spi_instance, tx_message, rx);
+}
+
+void BMS::read_cell_voltages() {
+	uint8_t voltage_number = 0;
+	for (COMMAND voltage_register : get_cell_voltage_registers()) {
+		parse_voltage_group(voltage_register, voltage_number);
+		voltage_number++;
+	}
 }
 
 void BMS::parse_command(span<uint8_t> tx_message, COMMAND command) {
@@ -98,7 +108,7 @@ voltage_register_group BMS::parse_voltage_register(span<uint8_t> voltage_data) {
 array<voltage_register_group, BMS::EXTERNAL_ADCS> BMS::read_voltage_register(COMMAND voltage_register) {
 	const uint8_t REGISTER_LENGTH = LTC681X::DATA_REGISTER_LENGTH + PEC15::LENGTH;
 
-	constexpr size_t voltage_data_size = REGISTER_LENGTH*EXTERNAL_ADCS;
+	constexpr size_t voltage_data_size = REGISTER_LENGTH * EXTERNAL_ADCS;
 	array<uint8_t, voltage_data_size> voltage_data;
 
 	send_receive_command(voltage_register, voltage_data);
@@ -131,4 +141,25 @@ array<uint16_t, BMS::EXTERNAL_ADCS> BMS::get_temperatures() {
 		temperatures[adc_number] = (uint16_t)adc_temperatures[2] + ((uint16_t)adc_temperatures[3] << 8);
 	}
 		return temperatures;
+}
+
+void BMS::wake_up() {
+	SPI::transmit(spi_instance, 1);
+}
+
+void BMS::start_adc_conversion_all_cells() {
+	send_command(START_ADC_CONVERSION_ALL_CELLS);
+}
+
+void BMS::measure_internal_device_parameters() {
+	send_command(MEASURE_INTERNAL_DEVICE_PARAMETERS);
+}
+
+void BMS::start_adc_conversion_gpio() {
+	send_command(START_ADC_CONVERSION_ALL_GPIO);
+}
+
+void BMS::parse_voltage_group(COMMAND voltage_register, uint8_t voltage_number) {
+	array<voltage_register_group, BMS::EXTERNAL_ADCS> voltages = read_voltage_register(voltage_register);
+	copy_voltages_to_external_adcs(voltages, voltage_number);
 }

@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-set(STLIB_DIR /opt/malva/ST-LIB/)
+set(STLIB_DIR ../../ST-LIB/)
 set(BMS-LIB bms-lib)
 
 add_subdirectory(${STLIB_DIR} ${STLIB_DIR}/build)

@@ -86,13 +86,25 @@ public:
 	void send_receive_command(COMMAND command, span<uint8_t> rx_data);
 	void send_receive_command(COMMAND command, span<uint8_t> tx_data, span<uint8_t> rx_data);
 
+	void wake_up();
+	void start_adc_conversion_all_cells();
+	void measure_internal_device_parameters();
+	void start_adc_conversion_gpio();
+	void read_cell_voltages();
+
 protected:
 	uint8_t spi_instance;
 	array<voltage_register_group, BMS::EXTERNAL_ADCS> read_voltage_register(COMMAND voltage_register);
 	array<uint16_t, BMS::EXTERNAL_ADCS> get_temperatures();
 
 	voltage_register_group parse_voltage_register(span<uint8_t> voltage_data);
+	void parse_voltage_group(COMMAND voltage_register, uint8_t voltage_number);
 
 	void add_message_data(span<uint8_t> message, span<uint8_t> data);
 	void parse_command(span<uint8_t> tx_message, COMMAND command);
+
+	static array<COMMAND, 4> cell_voltage_registers;
+	virtual span<COMMAND> get_cell_voltage_registers() = 0;
+	virtual void copy_voltages_to_external_adcs(array<voltage_register_group, BMS::EXTERNAL_ADCS> voltages, uint8_t voltage_number) = 0; 
+
 };

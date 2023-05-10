@@ -22,6 +22,10 @@ BMSH::BMSH(SPI::Peripheral& spi_peripheral) {
 	}
 
 	spi_instance = spi_optional.value();
+
+	for (LTC6811& external_adc : external_adcs) {
+		external_adc = LTC6811();
+	}
 }
 
 uint8_t BMSH::check_adc_conversion_status() {

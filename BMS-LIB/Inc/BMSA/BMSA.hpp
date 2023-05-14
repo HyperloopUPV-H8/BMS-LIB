@@ -21,5 +21,5 @@ private:
 
 public:
 	BMSA() = default;
-	BMSA(uint8_t spi_instance);
+	BMSA(SPI::Peripheral& spi_peripheral);
 };

@@ -22,7 +22,7 @@ using std::views::drop;
 
 class BMS {
 public:
-	static constexpr int EXTERNAL_ADCS = 5;
+	static constexpr int EXTERNAL_ADCS = 1;
 	bool balancing = false;
 protected:
 	enum ADC_MODE : uint8_t {

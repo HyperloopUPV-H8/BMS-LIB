@@ -58,6 +58,19 @@ void BMS::read_cell_voltages() {
 	}
 }
 
+void BMS::start_balancing() {
+	check_adcs();
+	wake_up();
+	update_configuration();
+}
+
+void BMS::update_configuration(){
+	constexpr uint8_t data_size = LTC681X::DATA_REGISTER_LENGTH * EXTERNAL_ADCS;
+	array<uint8_t, data_size> data_stream = { 0 };
+	parse_configuration_data_stream(data_stream);
+	send_command(WRITE_CONFIGURATION_REGISTER_GROUP, data_stream);
+}
+
 void BMS::parse_command(span<uint8_t> tx_message, COMMAND command) {
 	tx_message[0] = (uint8_t)(command >> 8);
 	tx_message[1] = (uint8_t)(command);

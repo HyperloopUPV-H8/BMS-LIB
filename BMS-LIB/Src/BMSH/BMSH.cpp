@@ -78,15 +78,6 @@ void BMSH::update_temperatures() {
 	});
 }
 
-//TODO:
-void BMSH::start_balancing() {
-	for (uint8_t i : iota(0, (int)BMSH::EXTERNAL_ADCS)) {
-		check_batteries(external_adcs[i]);
-	}
-
-	wake_up();
-	update_configuration();
-}
 
 void BMSH::stop_balancing() {
 	for (uint8_t i : iota(0, (int)BMSH::EXTERNAL_ADCS)) {
@@ -99,9 +90,21 @@ void BMSH::stop_balancing() {
 	update_configuration();
 }
 
-void BMSH::update_configuration(){
-	constexpr uint8_t data_size = LTC6811::DATA_REGISTER_LENGTH * EXTERNAL_ADCS;
-	array<uint8_t, data_size> data_stream = { 0 };
+
+LTC681X::configuration& BMSH::get_config(uint8_t adc_number) {
+	return external_adcs[adc_number].peripheral_configuration;
+}
+
+/************************************************
+ *              PRIVATE FUNCTIONS
+ ***********************************************/
+
+void BMSH::check_adcs() {
+	for (uint8_t i : iota(0, BMS::EXTERNAL_ADCS)) {
+		check_batteries(external_adcs[i]);
+	}
+}
+void BMSH::parse_configuration_data_stream(span<uint8_t> data_stream) {
 	uint8_t offset = 0;
 	for (LTC6811 external_adc : external_adcs) {
 		for (bitset<8> data_register : external_adc.peripheral_configuration.register_group) {
@@ -109,15 +112,7 @@ void BMSH::update_configuration(){
 			offset++;
 		}
 	}
-	send_command(WRITE_CONFIGURATION_REGISTER_GROUP, data_stream);
 }
-
-LTC681X::configuration& BMSH::get_config(uint8_t adc_number) {
-	return external_adcs[adc_number].peripheral_configuration;
-}
-/************************************************
- *              PRIVATE FUNCTIONS
- ***********************************************/
 
 void BMSH::check_batteries(LTC6811& external_adc) {
 	uint8_t cell_offset = 0;

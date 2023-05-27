@@ -91,6 +91,8 @@ public:
 	void measure_internal_device_parameters();
 	void start_adc_conversion_gpio();
 	void read_cell_voltages();
+	void start_balancing();
+	void update_configuration(); 
 
 protected:
 	uint8_t spi_instance;
@@ -106,5 +108,6 @@ protected:
 	static array<COMMAND, 4> cell_voltage_registers;
 	virtual span<COMMAND> get_cell_voltage_registers() = 0;
 	virtual void copy_voltages_to_external_adcs(array<voltage_register_group, BMS::EXTERNAL_ADCS> voltages, uint8_t voltage_number) = 0; 
-
+	virtual void parse_configuration_data_stream(span<uint8_t> data_stream) = 0;
+	virtual void check_adcs() = 0;
 };

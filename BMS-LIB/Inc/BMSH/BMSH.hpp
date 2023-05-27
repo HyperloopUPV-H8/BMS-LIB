@@ -18,6 +18,8 @@ private:
 	void check_batteries(LTC6811& external_adc);
 	span<COMMAND> get_cell_voltage_registers();
 	void copy_voltages_to_external_adcs(array<voltage_register_group, BMS::EXTERNAL_ADCS> voltages, uint8_t voltage_number); 
+	void parse_configuration_data_stream(span<uint8_t> data_stream);
+	void check_adcs();
 
 public:
 

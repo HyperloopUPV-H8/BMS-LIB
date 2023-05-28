@@ -22,7 +22,7 @@ using std::views::drop;
 
 class BMS {
 public:
-	static constexpr int EXTERNAL_ADCS = 1;
+	static constexpr int EXTERNAL_ADCS = 5;
 	bool balancing = false;
 protected:
 	enum ADC_MODE : uint8_t {
@@ -95,6 +95,8 @@ public:
 	void update_configuration(); 
 
 protected:
+	bool is_converting = false;
+	
 	uint8_t spi_instance;
 	array<voltage_register_group, BMS::EXTERNAL_ADCS> read_voltage_register(COMMAND voltage_register);
 	array<uint16_t, BMS::EXTERNAL_ADCS> get_temperatures();

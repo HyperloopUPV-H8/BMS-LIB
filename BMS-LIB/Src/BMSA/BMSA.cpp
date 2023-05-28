@@ -9,14 +9,7 @@
 #include "ErrorHandler/ErrorHandler.hpp"
 
 BMSA::BMSA(SPI::Peripheral& spi_peripheral) {
-	optional<uint8_t> spi_optional = SPI::inscribe(spi_peripheral);
-
-	if (not spi_optional) {
-		ErrorHandler("SPI peripheral of BMSH did not register correctly");
-		return;
-	}
-
-	spi_instance = spi_optional.value();
+	uint8_t spi_instance = SPI::inscribe(spi_peripheral);
 	external_adc = LTC6810();
 }
 

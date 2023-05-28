@@ -30,6 +30,8 @@ public:
 
 
 	uint8_t check_adc_conversion_status();
+
+	void update_internal_temperature();
 	void read_internal_temperature();
 
 	void start_adc_conversion_temperatures();

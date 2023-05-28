@@ -31,11 +31,13 @@ public:
 	float* temperature1;
 	float* temperature2;
 
+	float SOC;
+
 	Battery() = default;
 	Battery(voltage_register_group* cell_register1, voltage_register_group* cell_register2, float* temperature1, float* temperature2);
 
+	void update_data();
 	bool needs_balance();
-	float get_soc();
 
 private:
 	float get_charging_maximum_voltage();

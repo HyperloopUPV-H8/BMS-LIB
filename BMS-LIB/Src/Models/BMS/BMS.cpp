@@ -51,6 +51,10 @@ void BMS::send_receive_command(COMMAND command, span<uint8_t> tx_data, span<uint
 }
 
 void BMS::read_cell_voltages() {
+	if (is_converting) {
+		return;
+	}
+
 	uint8_t voltage_number = 0;
 	for (COMMAND voltage_register : get_cell_voltage_registers()) {
 		parse_voltage_group(voltage_register, voltage_number);
@@ -161,7 +165,16 @@ void BMS::wake_up() {
 }
 
 void BMS::start_adc_conversion_all_cells() {
+	if (is_converting) {
+		return;
+	}
+	
 	send_command(START_ADC_CONVERSION_ALL_CELLS);
+	is_converting = true;
+
+	Time::set_timeout(2, [&]() {
+		is_converting = false;
+	});
 }
 
 void BMS::measure_internal_device_parameters() {

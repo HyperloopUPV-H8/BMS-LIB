@@ -20,27 +20,22 @@ Battery::Battery(voltage_register_group* voltage_register1, voltage_register_gro
 	maximum_cell = cells[0];
 }
 
-bool Battery::needs_balance() {
+void Battery::update_data() {
 	for (float* cell : cells) {
 		if (*cell > *maximum_cell) maximum_cell = cell;
 		if (*cell < *minimum_cell) minimum_cell = cell;
 	}
+
+	SOC = SOC::calculate(*minimum_cell);
+}
+bool Battery::needs_balance() {
+	update_data();
 
 	if (SOC::calculate(*maximum_cell) - SOC::calculate(*minimum_cell) > SOC::MAX_DIFFERENCE) {
 		return true;
 	}
 
 	return false;
-}
-
-float Battery::get_soc() {
-	float min_value = 100;
-	for (float* cell : cells) {
-		float cell_soc = SOC::calculate(*cell);
-		if (cell_soc < min_value) min_value = cell_soc;
-	}
-
-	return min_value;
 }
 
 float Battery::get_charging_maximum_voltage() {

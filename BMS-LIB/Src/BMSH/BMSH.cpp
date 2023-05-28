@@ -14,14 +14,7 @@
  ***********************************************/
 
 BMSH::BMSH(SPI::Peripheral& spi_peripheral) {
-	optional<uint8_t> spi_optional = SPI::inscribe(spi_peripheral);
-
-	if (not spi_optional) {
-		ErrorHandler("SPI peripheral of BMSH did not register correctly");
-		return;
-	}
-
-	spi_instance = spi_optional.value();
+	uint8_t spi_instance = SPI::inscribe(spi_peripheral);
 
 	for (LTC6811& external_adc : external_adcs) {
 		external_adc = LTC6811();

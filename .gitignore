@@ -4,5 +4,5 @@ BMS-LIB/Debug
 BMS-LIB/.settings/
 BMS-LIB/.cproject/
 ST-LIB
-build
-!build/build.sh
+BMS-LIB/build
+!BMS-LIB/build/build.sh

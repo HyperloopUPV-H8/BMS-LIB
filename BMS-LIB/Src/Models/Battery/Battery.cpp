@@ -16,22 +16,25 @@ Battery::Battery(voltage_register_group* voltage_register1, voltage_register_gro
 	cells[5] = &voltage_register2->voltage3;
 	temperature1 = temp1;
 	temperature2 = temp2;
-	minimum_cell = cells[0];
-	maximum_cell = cells[0];
+	minimum_cell = *cells[0];
+	maximum_cell = *cells[0];
 }
 
 void Battery::update_data() {
+	maximum_cell = *cells[0];
+	minimum_cell = *cells[0];
+	
 	for (float* cell : cells) {
-		if (*cell > *maximum_cell) maximum_cell = cell;
-		if (*cell < *minimum_cell) minimum_cell = cell;
+		if (*cell > maximum_cell) maximum_cell = *cell;
+		if (*cell < minimum_cell) minimum_cell = *cell;
 	}
 
-	SOC = SOC::calculate(*minimum_cell);
+	SOC = SOC::calculate(minimum_cell);
 }
 bool Battery::needs_balance() {
 	update_data();
 
-	if (SOC::calculate(*maximum_cell) - SOC::calculate(*minimum_cell) > SOC::MAX_DIFFERENCE) {
+	if (SOC::calculate(maximum_cell) - SOC::calculate(minimum_cell) > SOC::MAX_DIFFERENCE) {
 		return true;
 	}
 

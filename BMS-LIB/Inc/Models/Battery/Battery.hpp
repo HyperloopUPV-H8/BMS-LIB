@@ -25,11 +25,13 @@ public:
 	static const int MAX_TEMPERATURE = 60;
 
 	float* cells[CELLS];
-	float* minimum_cell;
-	float* maximum_cell;
+	float minimum_cell;
+	float maximum_cell;
 
 	float* temperature1;
 	float* temperature2;
+
+	bool is_balancing = false;
 
 	float SOC;
 

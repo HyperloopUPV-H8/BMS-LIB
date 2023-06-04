@@ -20,6 +20,9 @@ private:
 	void copy_voltages_to_external_adcs(array<voltage_register_group, BMS::EXTERNAL_ADCS> voltages, uint8_t voltage_number); 
 	void parse_configuration_data_stream(span<uint8_t> data_stream);
 	void check_adcs();
+	void deactivate_cell_discharging();
+	void parse_temperatures(array<voltage_register_group, BMSH::EXTERNAL_ADCS> temperatures_register1, array<voltage_register_group, BMSH::EXTERNAL_ADCS> temperatures_register2);
+	void copy_internal_temperature(array<uint16_t, BMS::EXTERNAL_ADCS> temperatures);
 
 public:
 
@@ -32,20 +35,14 @@ public:
 	uint8_t check_adc_conversion_status();
 
 	void update_internal_temperature();
-	void read_internal_temperature();
-
-	void start_adc_conversion_temperatures();
-	void read_temperatures();
-
-	void update_cell_voltages();
-	void update_temperatures();
 	void start_balancing();
 	void stop_balancing();
 	void update_configuration();
+
+	void initialize();
 
 	float get_cell(uint8_t cell);
 	float get_gpio(uint8_t gpio);
 	LTC681X::configuration& get_config(uint8_t adc_number);
 
-	void parse_temperatures(array<voltage_register_group, BMS::EXTERNAL_ADCS> temperatures_register1, array<voltage_register_group, BMS::EXTERNAL_ADCS> temperatures_register2);
 };

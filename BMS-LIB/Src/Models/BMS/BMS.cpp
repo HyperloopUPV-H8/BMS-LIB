@@ -51,7 +51,7 @@ void BMS::send_receive_command(COMMAND command, span<uint8_t> tx_data, span<uint
 }
 
 void BMS::read_cell_voltages() {
-	if (is_converting) {
+	if (is_converting or not cells_converted) {
 		return;
 	}
 
@@ -60,10 +60,19 @@ void BMS::read_cell_voltages() {
 		parse_voltage_group(voltage_register, voltage_number);
 		voltage_number++;
 	}
+
+	cells_converted = false;
 }
 
 void BMS::start_balancing() {
 	check_adcs();
+	wake_up();
+	update_configuration();
+}
+
+
+void BMS::stop_balancing() {
+	deactivate_cell_discharging();
 	wake_up();
 	update_configuration();
 }
@@ -73,6 +82,37 @@ void BMS::update_configuration(){
 	array<uint8_t, data_size> data_stream = { 0 };
 	parse_configuration_data_stream(data_stream);
 	send_command(WRITE_CONFIGURATION_REGISTER_GROUP, data_stream);
+}
+
+//TODO: revisar
+void BMS::update_cell_voltages() {
+	start_adc_conversion_all_cells();
+
+	Time::set_timeout(2, [&]() {
+		read_cell_voltages();
+	});
+}
+
+void BMS::start_adc_conversion_temperatures() {
+	is_converting = true;
+
+	send_command(START_ADC_CONVERSION_GPIO_1);
+	send_command(START_ADC_CONVERSION_GPIO_2);
+	send_command(START_ADC_CONVERSION_GPIO_3);
+	send_command(START_ADC_CONVERSION_GPIO_4);
+
+	Time::set_timeout(2, [&]() {
+		is_converting = false;
+		battery_temperatures_converted = true;
+	});
+}
+
+void BMS::update_temperatures() {
+	start_adc_conversion_temperatures();
+
+	Time::set_timeout(2, [&](){
+		read_temperatures();
+	});
 }
 
 void BMS::parse_command(span<uint8_t> tx_message, COMMAND command) {
@@ -122,6 +162,18 @@ voltage_register_group BMS::parse_voltage_register(span<uint8_t> voltage_data) {
 	};
 }
 
+void BMS::read_temperatures() {
+	if (is_converting or not battery_temperatures_converted) {
+		return;
+	}
+
+	array<voltage_register_group, BMS::EXTERNAL_ADCS> temperatures_register1 = read_voltage_register(READ_AUXILIARY_REGISTER_GROUP_A);
+	array<voltage_register_group, BMS::EXTERNAL_ADCS> temperatures_register2 = read_voltage_register(READ_AUXILIARY_REGISTER_GROUP_B);
+	parse_temperatures(temperatures_register1, temperatures_register2);
+
+	battery_temperatures_converted = false;
+}
+
 array<voltage_register_group, BMS::EXTERNAL_ADCS> BMS::read_voltage_register(COMMAND voltage_register) {
 	const uint8_t REGISTER_LENGTH = LTC681X::DATA_REGISTER_LENGTH + PEC15::LENGTH;
 
@@ -130,7 +182,7 @@ array<voltage_register_group, BMS::EXTERNAL_ADCS> BMS::read_voltage_register(COM
 
 	send_receive_command(voltage_register, voltage_data);
 
-	static array<voltage_register_group, EXTERNAL_ADCS> voltages;
+	static array<voltage_register_group, EXTERNAL_ADCS> voltages = { 0 };
 	for(int adc_number : iota(0, BMS::EXTERNAL_ADCS)) {
 		span adc_voltages(voltage_data.begin() + REGISTER_LENGTH * adc_number, voltage_data.begin() + REGISTER_LENGTH * (adc_number + 1));
 		if (not is_pec_correct(adc_voltages)) {
@@ -144,6 +196,7 @@ array<voltage_register_group, BMS::EXTERNAL_ADCS> BMS::read_voltage_register(COM
 }
 
 array<uint16_t, BMS::EXTERNAL_ADCS> BMS::get_temperatures() {
+
 	constexpr uint8_t REGISTER_LENGTH = LTC681X::DATA_REGISTER_LENGTH + PEC15::LENGTH;
 	constexpr uint8_t TEMPERATURE_DATA_SIZE = REGISTER_LENGTH*EXTERNAL_ADCS;
 	array<uint8_t, TEMPERATURE_DATA_SIZE> temperature_data;
@@ -160,12 +213,23 @@ array<uint16_t, BMS::EXTERNAL_ADCS> BMS::get_temperatures() {
 		return temperatures;
 }
 
+void BMS::read_internal_temperature() {
+	if (is_converting or not internal_parameters_converted) {
+		return;
+	}
+
+	array<uint16_t, BMS::EXTERNAL_ADCS> temperatures = get_temperatures();
+	copy_internal_temperature(temperatures);
+
+	internal_parameters_converted = false;
+}
+
 void BMS::wake_up() {
 	SPI::transmit(spi_instance, 1);
 }
 
 void BMS::start_adc_conversion_all_cells() {
-	if (is_converting) {
+	if (is_converting or cells_converted) {
 		return;
 	}
 	
@@ -174,11 +238,18 @@ void BMS::start_adc_conversion_all_cells() {
 
 	Time::set_timeout(2, [&]() {
 		is_converting = false;
+		cells_converted = true;
 	});
 }
 
 void BMS::measure_internal_device_parameters() {
+	is_converting = true;
 	send_command(MEASURE_INTERNAL_DEVICE_PARAMETERS);
+
+	Time::set_timeout(2, [&]() {
+		is_converting = false;
+		internal_parameters_converted = true;
+	});
 }
 
 void BMS::start_adc_conversion_gpio() {

@@ -88,15 +88,25 @@ public:
 
 	void wake_up();
 	void start_adc_conversion_all_cells();
+	void start_adc_conversion_temperatures();
 	void measure_internal_device_parameters();
 	void start_adc_conversion_gpio();
 	void read_cell_voltages();
+	void read_internal_temperature();
+	void read_temperatures();
 	void start_balancing();
-	void update_configuration(); 
+	void stop_balancing();
+	void update_configuration();
+	void update_cell_voltages(); 
+	void update_temperatures();
 
 protected:
 	bool is_converting = false;
+	bool cells_converted = false;
+	bool internal_parameters_converted = false;
+	bool battery_temperatures_converted = false;
 	
+	using voltage_register_array = array<voltage_register_group, BMS::EXTERNAL_ADCS>;
 	uint8_t spi_instance;
 	array<voltage_register_group, BMS::EXTERNAL_ADCS> read_voltage_register(COMMAND voltage_register);
 	array<uint16_t, BMS::EXTERNAL_ADCS> get_temperatures();
@@ -109,7 +119,10 @@ protected:
 
 	static array<COMMAND, 4> cell_voltage_registers;
 	virtual span<COMMAND> get_cell_voltage_registers() = 0;
-	virtual void copy_voltages_to_external_adcs(array<voltage_register_group, BMS::EXTERNAL_ADCS> voltages, uint8_t voltage_number) = 0; 
+	virtual void copy_voltages_to_external_adcs(voltage_register_array voltages, uint8_t voltage_number) = 0; 
 	virtual void parse_configuration_data_stream(span<uint8_t> data_stream) = 0;
 	virtual void check_adcs() = 0;
+	virtual void deactivate_cell_discharging() = 0;
+	virtual void parse_temperatures(voltage_register_array temperatures_register1, voltage_register_array temperatures_register2) = 0;
+	virtual void copy_internal_temperature(array<uint16_t, BMS::EXTERNAL_ADCS> temperatures) = 0;
 };

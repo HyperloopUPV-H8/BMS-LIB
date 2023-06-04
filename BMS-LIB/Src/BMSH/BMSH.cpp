@@ -14,11 +14,22 @@
  ***********************************************/
 
 BMSH::BMSH(SPI::Peripheral& spi_peripheral) {
-	uint8_t spi_instance = SPI::inscribe(spi_peripheral);
+	spi_instance = SPI::inscribe(spi_peripheral);
 
-	for (LTC6811& external_adc : external_adcs) {
-		external_adc = LTC6811();
-	}
+
+	external_adcs[0] = LTC6811();
+	external_adcs[1] = LTC6811();
+	external_adcs[2] = LTC6811();
+	external_adcs[3] = LTC6811();
+	external_adcs[4] = LTC6811();
+}
+
+void BMSH::initialize() {
+	external_adcs[0].initialize_batteries();
+	external_adcs[1].initialize_batteries();
+	external_adcs[2].initialize_batteries();
+	external_adcs[3].initialize_batteries();
+	external_adcs[4].initialize_batteries();
 }
 
 uint8_t BMSH::check_adc_conversion_status() {
@@ -34,53 +45,12 @@ span<BMS::COMMAND> BMSH::get_cell_voltage_registers() {
 	return cell_voltage_registers;
 }
 
-void BMSH::read_internal_temperature() {
-	array<uint16_t, BMSH::EXTERNAL_ADCS> temperatures = get_temperatures();
-	for (int adc_number : iota(0, BMSH::EXTERNAL_ADCS)) {
-		external_adcs[adc_number].internal_temperature = temperatures[adc_number] * (0.0001 / 0.0075) - 273;
-	}
-}
-
-//TODO: revisar
-void BMSH::update_cell_voltages() {
-	start_adc_conversion_all_cells();
-
-	Time::set_timeout(2, [&]() {
-		read_cell_voltages();
-	});
-}
-
-void BMSH::start_adc_conversion_temperatures() {
-	send_command(START_ADC_CONVERSION_GPIO_1);
-	send_command(START_ADC_CONVERSION_GPIO_2);
-	send_command(START_ADC_CONVERSION_GPIO_3);
-	send_command(START_ADC_CONVERSION_GPIO_4);
-}
-
-void BMSH::read_temperatures() {
-	array<voltage_register_group, BMSH::EXTERNAL_ADCS> temperatures_register1 = read_voltage_register(READ_AUXILIARY_REGISTER_GROUP_A);
-	array<voltage_register_group, BMSH::EXTERNAL_ADCS> temperatures_register2 = read_voltage_register(READ_AUXILIARY_REGISTER_GROUP_B);
-	parse_temperatures(temperatures_register1, temperatures_register2);
-}
-
-void BMSH::update_temperatures() {
-	start_adc_conversion_temperatures();
-
-	Time::set_timeout(2, [&](){
-		read_temperatures();
-	});
-}
-
-
-void BMSH::stop_balancing() {
-	for (uint8_t i : iota(0, (int)BMSH::EXTERNAL_ADCS)) {
-		for (uint8_t j : iota(0, (int)Battery::CELLS)) {
+void BMSH::deactivate_cell_discharging() {
+	for (uint8_t i : iota(0, BMSH::EXTERNAL_ADCS)) {
+		for (uint8_t j : iota(0, 2*Battery::CELLS)) {
 			external_adcs[i].peripheral_configuration.set_cell_discharging(j, false);
 		}
 	}
-
-	wake_up();
-	update_configuration();
 }
 
 
@@ -97,6 +67,13 @@ void BMSH::check_adcs() {
 		check_batteries(external_adcs[i]);
 	}
 }
+
+void BMSH::copy_internal_temperature(array<uint16_t, BMS::EXTERNAL_ADCS> temperatures) {
+	for (uint8_t i : iota(0, BMS::EXTERNAL_ADCS)) {
+		external_adcs[i].internal_temperature = (float)temperatures[i] / 75 - 273;
+	}
+}
+
 void BMSH::parse_configuration_data_stream(span<uint8_t> data_stream) {
 	uint8_t offset = 0;
 	for (LTC6811 external_adc : external_adcs) {
@@ -117,7 +94,7 @@ void BMSH::check_batteries(LTC6811& external_adc) {
 		}
 
 		for(uint8_t i : iota(0, (int)Battery::CELLS)) {
-			float& min_cell = *battery.minimum_cell;
+			float& min_cell = battery.minimum_cell;
 			float& curr_cell = *battery.cells[i];
 			if (int(SOC::calculate(curr_cell)) - int(SOC::calculate(min_cell)) > SOC::MAX_DIFFERENCE) {
 				external_adc.peripheral_configuration.set_cell_discharging(cell_offset+i, true);

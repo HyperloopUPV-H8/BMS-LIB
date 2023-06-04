@@ -9,11 +9,11 @@
 #include "ErrorHandler/ErrorHandler.hpp"
 
 BMSA::BMSA(SPI::Peripheral& spi_peripheral) {
-	uint8_t spi_instance = SPI::inscribe(spi_peripheral);
+	spi_instance = SPI::inscribe(spi_peripheral);
 	external_adc = LTC6810();
 }
 
-span<BMSA::COMMAND> BMSA::get_cell_voltage_registers() {
+span<BMS::COMMAND> BMSA::get_cell_voltage_registers() {
 	return span(cell_voltage_registers.begin(), cell_voltage_registers.end()-2);
 }
 
@@ -39,7 +39,7 @@ void BMSA::check_adcs() {
 	}
 
 	for(uint8_t i : iota(0, (int)Battery::CELLS)) {
-		float& min_cell = *battery.minimum_cell;
+		float& min_cell = battery.minimum_cell;
 		float& curr_cell = *battery.cells[i];
 		if (int(SOC::calculate(curr_cell)) - int(SOC::calculate(min_cell)) > SOC::MAX_DIFFERENCE) {
 			external_adc.peripheral_configuration.set_cell_discharging(i, true);
@@ -48,4 +48,22 @@ void BMSA::check_adcs() {
 			external_adc.peripheral_configuration.set_cell_discharging(i, false);
 		}
 	}
+}
+
+void BMSA::copy_internal_temperature(array<uint16_t, BMS::EXTERNAL_ADCS> temperatures) {
+	external_adc.internal_temperature = (float)temperatures[0] / 75 - 273;
+}
+
+void BMSA::initialize() {
+	external_adc.initialize();
+}
+
+void BMSA::deactivate_cell_discharging() {
+	for (int i : iota(0, 2*Battery::CELLS)) {
+		external_adc.peripheral_configuration.set_cell_discharging(i, false);
+	}
+}
+
+void BMSA::parse_temperatures(array<voltage_register_group, BMSA::EXTERNAL_ADCS> temperatures_register1, array<voltage_register_group, BMSA::EXTERNAL_ADCS> temperatures_register2) {
+	external_adc.temperatures = temperatures_register1[0];
 }

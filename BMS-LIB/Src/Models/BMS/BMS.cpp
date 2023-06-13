@@ -101,10 +101,10 @@ void BMS::start_adc_conversion_temperatures() {
 	send_command(START_ADC_CONVERSION_GPIO_3);
 	send_command(START_ADC_CONVERSION_GPIO_4);
 
-	Time::set_timeout(2, [&]() {
-		is_converting = false;
-		battery_temperatures_converted = true;
-	});
+	// Time::set_timeout(2, [&]() {
+	// 	is_converting = false;
+	// 	battery_temperatures_converted = true;
+	// });
 }
 
 void BMS::update_temperatures() {
@@ -163,9 +163,9 @@ voltage_register_group BMS::parse_voltage_register(span<uint8_t> voltage_data) {
 }
 
 void BMS::read_temperatures() {
-	if (is_converting or not battery_temperatures_converted) {
-		return;
-	}
+	// if (is_converting or not battery_temperatures_converted) {
+	// 	return;
+	// }
 
 	array<voltage_register_group, BMS::EXTERNAL_ADCS> temperatures_register1 = read_voltage_register(READ_AUXILIARY_REGISTER_GROUP_A);
 	array<voltage_register_group, BMS::EXTERNAL_ADCS> temperatures_register2 = read_voltage_register(READ_AUXILIARY_REGISTER_GROUP_B);

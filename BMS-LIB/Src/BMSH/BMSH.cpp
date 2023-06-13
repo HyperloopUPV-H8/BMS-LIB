@@ -127,9 +127,18 @@ float BMSH::get_gpio(uint8_t gpio) {
 
 
 void BMSH::parse_temperatures(array<voltage_register_group, BMSH::EXTERNAL_ADCS> temperatures_register1, array<voltage_register_group, BMSH::EXTERNAL_ADCS> temperatures_register2) {
-	for (uint8_t adc_number : iota(EXTERNAL_ADCS)) {
-		external_adcs[adc_number].temperatures[0] = temperatures_register1[adc_number];
-		external_adcs[adc_number].temperatures[1] = temperatures_register2[adc_number];
+	for (int adc_number : iota(0, EXTERNAL_ADCS)) {
+			int raw_temp = (temperatures_register1[adc_number].voltage1 * 10000) / 16;
+			external_adcs[adc_number].temperatures[0].voltage1 = NTC_table[raw_temp]*0.1 / 2;
+
+			raw_temp = (temperatures_register1[adc_number].voltage2 * 10000) / 16;
+			external_adcs[adc_number].temperatures[0].voltage2 = NTC_table[raw_temp]*0.1 / 2;
+
+			raw_temp = (temperatures_register1[adc_number].voltage3 * 10000) / 16;
+			external_adcs[adc_number].temperatures[0].voltage3 = NTC_table[raw_temp]*0.1 / 2;
+
+			raw_temp = (temperatures_register2[adc_number].voltage1 * 10000) / 16;
+			external_adcs[adc_number].temperatures[1].voltage1 = NTC_table[raw_temp]*0.1 / 2;
 	}
 }
 

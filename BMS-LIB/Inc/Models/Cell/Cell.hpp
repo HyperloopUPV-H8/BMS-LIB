@@ -11,6 +11,6 @@
 
 class Cell {
 public:
-	static constexpr float MIN_VOLTAGE = 3.4;
+	static constexpr float MIN_VOLTAGE = 3.3;
 	static constexpr float MAX_VOLTAGE = 4.2;
 };

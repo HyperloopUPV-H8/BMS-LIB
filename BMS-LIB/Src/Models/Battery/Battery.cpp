@@ -23,10 +23,11 @@ Battery::Battery(voltage_register_group* voltage_register1, voltage_register_gro
 void Battery::update_data() {
 	maximum_cell = *cells[0];
 	minimum_cell = *cells[0];
-	
+	total_voltage = 0;
 	for (float* cell : cells) {
 		if (*cell > maximum_cell) maximum_cell = *cell;
 		if (*cell < minimum_cell) minimum_cell = *cell;
+		total_voltage += *cell;
 	}
 
 	SOC = SOC::calculate(minimum_cell);

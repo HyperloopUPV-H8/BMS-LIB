@@ -27,6 +27,8 @@ public:
 	float* cells[CELLS];
 	float minimum_cell;
 	float maximum_cell;
+	float total_voltage;
+	
 
 	float* temperature1;
 	float* temperature2;

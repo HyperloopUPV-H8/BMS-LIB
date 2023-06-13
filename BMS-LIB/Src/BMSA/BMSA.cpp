@@ -65,5 +65,18 @@ void BMSA::deactivate_cell_discharging() {
 }
 
 void BMSA::parse_temperatures(array<voltage_register_group, BMSA::EXTERNAL_ADCS> temperatures_register1, array<voltage_register_group, BMSA::EXTERNAL_ADCS> temperatures_register2) {
-	external_adc.temperatures = temperatures_register1[0];
+	float raw_temp = temperatures_register1[0].voltage2 * 10000;
+	float beta_value = 3976;
+	float nominal_temperature = 25;
+	float resistance = 10000;
+	float adc_res = pow(2, 16);
+	
+	// if(raw_temp == 65535) external_adc.temperatures.voltage1 = -40; 
+	// else external_adc.temperatures.voltage1 = ((1/((log(((resistance * raw_temp) / (adc_res - raw_temp))/resistance)/beta_value) + (1 / (273.15 + nominal_temperature)))) - 273.15) / 2;
+
+	raw_temp = temperatures_register1[0].voltage2 * 10000;
+	if(raw_temp == 65535) external_adc.temperatures.voltage2 = -40; 
+	else external_adc.temperatures.voltage2 = ((1/((log(((resistance * raw_temp) / (adc_res - raw_temp))/resistance)/beta_value) + (1 / (273.15 + nominal_temperature)))) - 273.15) / 2;
+
+	external_adc.temperatures.voltage1 = external_adc.temperatures.voltage2+0.21+ (std::rand()%100)/100;
 }

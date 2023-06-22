@@ -9,3 +9,4 @@
 
 #include "BMSA/BMSA.hpp"
 #include "BMSH/BMSH.hpp"
+#include "ChargingStateMachine/ChargingStateMachine.hpp"

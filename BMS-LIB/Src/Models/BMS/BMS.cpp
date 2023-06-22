@@ -243,6 +243,10 @@ void BMS::start_adc_conversion_all_cells() {
 }
 
 void BMS::measure_internal_device_parameters() {
+	if (is_converting or cells_converted) {
+		return;
+	}
+	
 	is_converting = true;
 	send_command(MEASURE_INTERNAL_DEVICE_PARAMETERS);
 

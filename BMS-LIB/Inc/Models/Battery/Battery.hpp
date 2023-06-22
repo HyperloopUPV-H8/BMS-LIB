@@ -23,11 +23,14 @@ public:
 	static const int CELLS = 6;
 	static const int MIN_TEMPERATURE = 0;
 	static const int MAX_TEMPERATURE = 60;
+	static constexpr float MAX_DISBALANCE = 0.2;
 
 	float* cells[CELLS];
 	float minimum_cell;
 	float maximum_cell;
 	float total_voltage;
+	float disbalance;
+	float is_connected;
 	
 
 	float* temperature1;

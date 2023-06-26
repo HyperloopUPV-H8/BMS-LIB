@@ -36,6 +36,7 @@ public:
 	float* temperature1;
 	float* temperature2;
 
+
 	bool is_balancing = false;
 
 	float SOC;

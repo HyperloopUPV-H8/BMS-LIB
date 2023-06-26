@@ -124,6 +124,18 @@ float BMSH::get_gpio(uint8_t gpio) {
 	}
 }
 
+float BMSH::get_total_voltage() {
+	float total_voltage = 0;
+	for (LTC6811& adc: external_adcs) {
+		for (Battery& battery: adc.batteries) {
+			if (battery.is_connected) {
+				total_voltage += battery.total_voltage;
+			}
+		}
+	}
+	
+	return total_voltage;
+}
 
 
 void BMSH::parse_temperatures(array<voltage_register_group, BMSH::EXTERNAL_ADCS> temperatures_register1, array<voltage_register_group, BMSH::EXTERNAL_ADCS> temperatures_register2) {

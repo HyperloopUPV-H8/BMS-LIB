@@ -43,6 +43,7 @@ public:
 
 	float get_cell(uint8_t cell);
 	float get_gpio(uint8_t gpio);
+	float get_total_voltage();
 	LTC681X::configuration& get_config(uint8_t adc_number);
 
 };

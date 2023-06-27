@@ -18,6 +18,8 @@ Battery::Battery(voltage_register_group* voltage_register1, voltage_register_gro
 	temperature2 = temp2;
 	minimum_cell = *cells[0];
 	maximum_cell = *cells[0];
+	total_voltage = 0;
+	
 }
 
 void Battery::update_data() {

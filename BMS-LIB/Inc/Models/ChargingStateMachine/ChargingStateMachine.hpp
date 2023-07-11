@@ -61,6 +61,8 @@ void ChargingControl::start() {
         if (*SOC <= 60) {
             return true;
         }
+
+        return false;
     });
 
     state_machine.add_enter_action([&]() {

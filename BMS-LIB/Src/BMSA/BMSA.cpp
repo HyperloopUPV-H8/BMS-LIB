@@ -38,14 +38,19 @@ void BMSA::check_adcs() {
 		return;
 	}
 
-	for(uint8_t i : iota(0, (int)Battery::CELLS)) {
+	for(int i : iota(0, Battery::CELLS)) {
 		float& min_cell = battery.minimum_cell;
 		float& curr_cell = *battery.cells[i];
-		if (int(SOC::calculate(curr_cell)) - int(SOC::calculate(min_cell)) > SOC::MAX_DIFFERENCE) {
-			external_adc.peripheral_configuration.set_cell_discharging(i, true);
+
+
+		float soc_difference = SOC::calculate(curr_cell) - SOC::calculate(min_cell);
+		LTC681X::configuration config = external_adc.peripheral_configuration;
+		if (soc_difference > SOC::MAX_DIFFERENCE) {
+			config.set_cell_discharging(i, true);
 		}
-		else if (int(SOC::calculate(curr_cell)) - int(SOC::calculate(min_cell)) < SOC::MAX_DIFFERENCE/2){
-			external_adc.peripheral_configuration.set_cell_discharging(i, false);
+
+		else if (soc_difference <= SOC::MAX_DIFFERENCE/2){
+			config.set_cell_discharging(i, false);
 		}
 	}
 }

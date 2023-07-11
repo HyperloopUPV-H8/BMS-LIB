@@ -160,9 +160,9 @@ void BMS::add_message_data(span<uint8_t> message, span<uint8_t> data) {
 
 voltage_register_group BMS::parse_voltage_register(span<uint8_t> voltage_data) {
 	return {
-		(voltage_data[0] + ((uint16_t)voltage_data[1] << 8)) / 10000.0,
-		(voltage_data[2] + ((uint16_t)voltage_data[3] << 8)) / 10000.0,
-		(voltage_data[4] + ((uint16_t)voltage_data[5] << 8)) / 10000.0
+		(voltage_data[0] + ((uint16_t)voltage_data[1] << 8)) / (float)10000.0,
+		(voltage_data[2] + ((uint16_t)voltage_data[3] << 8)) / (float)10000.0,
+		(voltage_data[4] + ((uint16_t)voltage_data[5] << 8)) / (float)10000.0
 	};
 }
 

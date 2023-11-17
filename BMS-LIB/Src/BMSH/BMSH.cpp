@@ -70,7 +70,7 @@ void BMSH::check_adcs() {
 
 void BMSH::copy_internal_temperature(array<uint16_t, BMS::EXTERNAL_ADCS> temperatures) {
 	for (uint8_t i : iota(0, BMS::EXTERNAL_ADCS)) {
-		external_adcs[i].internal_temperature = (float)temperatures / 75 - 273;
+		external_adcs[i].internal_temperature = (float)temperatures[i] / 75 - 273;
 	}
 }
 
@@ -89,12 +89,12 @@ void BMSH::check_batteries(LTC6810& external_adc) {
 	
 		if(not external_adc.battery.needs_balance()) {
 			//cell_offset += 6;
-			continue;
+			return;
 		}
 
 		for(uint8_t i : iota(0, (int)Battery::CELLS)) {
-			float& min_cell = battery.minimum_cell;
-			float& curr_cell = *battery.cells[i];
+			float& min_cell = external_adc.battery.minimum_cell;
+			float& curr_cell = *external_adc.battery.cells[i];
 			if (int(SOC::calculate(curr_cell)) - int(SOC::calculate(min_cell)) > SOC::MAX_DIFFERENCE) {
 				external_adc.peripheral_configuration.set_cell_discharging(cell_offset+i, true);
 			}
@@ -110,13 +110,13 @@ void BMSH::check_batteries(LTC6810& external_adc) {
 float BMSH::get_cell(uint8_t cell) {
 	//Adjust cells numbers and values
 	LTC6810& adc = external_adcs[cell/6];
-	Battery& battery = adc.battery[cell%6];
+	Battery& battery = adc.battery;
 	return *battery.cells[cell%6];
 }
 
 float BMSH::get_gpio(uint8_t gpio) {
 	LTC6810& adc = external_adcs[gpio/4];
-	Battery& battery = adc.battery[gpio%4/2];
+	Battery& battery = adc.battery;
 	if (gpio%4%2 == 0) {
 		return *battery.temperature1;
 	} else {
@@ -127,10 +127,9 @@ float BMSH::get_gpio(uint8_t gpio) {
 float BMSH::get_total_voltage() {
 	float total_voltage = 0;
 	for (LTC6810& adc: external_adcs) {
-		for (Battery& battery: adc.battery) {
-			if (battery.is_connected) {
-				total_voltage += battery.total_voltage;
-			}
+			if (adc.battery.is_connected) {
+				total_voltage += adc.battery.total_voltage;
+
 		}
 	}
 	
@@ -141,16 +140,16 @@ float BMSH::get_total_voltage() {
 void BMSH::parse_temperatures(array<voltage_register_group, BMSH::EXTERNAL_ADCS> temperatures_register1, array<voltage_register_group, BMSH::EXTERNAL_ADCS> temperatures_register2) {
 	for (int adc_number : iota(0, EXTERNAL_ADCS)) {
 			int raw_temp = (temperatures_register1[adc_number].voltage1 * 10000) / 16;
-			external_adcs[adc_number].temperatures[0].voltage1 = NTC_table[raw_temp]*0.1 / 2;
+			external_adcs[adc_number].temperatures.voltage1 = NTC_table[raw_temp]*0.1 / 2;
 
 			raw_temp = (temperatures_register1[adc_number].voltage2 * 10000) / 16;
-			external_adcs[adc_number].temperatures[0].voltage2 = NTC_table[raw_temp]*0.1 / 2;
+			external_adcs[adc_number].temperatures.voltage2 = NTC_table[raw_temp]*0.1 / 2;
 
 			raw_temp = (temperatures_register1[adc_number].voltage3 * 10000) / 16;
-			external_adcs[adc_number].temperatures[0].voltage3 = NTC_table[raw_temp]*0.1 / 2;
+			external_adcs[adc_number].temperatures.voltage3 = NTC_table[raw_temp]*0.1 / 2;
 
 			raw_temp = (temperatures_register2[adc_number].voltage1 * 10000) / 16;
-			external_adcs[adc_number].temperatures[1].voltage1 = NTC_table[raw_temp]*0.1 / 2;
+			external_adcs[adc_number].temperatures.voltage1 = NTC_table[raw_temp]*0.1 / 2;
 	}
 }
 

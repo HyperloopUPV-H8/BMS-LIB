@@ -8,14 +8,14 @@
 #pragma once
 
 #include "BMS/BMS.hpp"
-#include "LTC6811/LTC6811.hpp"
+#include "LTC6810/LTC6810.hpp"
 #include "PEC15/PEC15.hpp"
 #include "SOC/SOC.hpp"
 
 class BMSH: public BMS {
 private:
 
-	void check_batteries(LTC6811& external_adc);
+	void check_batteries(LTC6810& external_adc);
 	span<COMMAND> get_cell_voltage_registers();
 	void copy_voltages_to_external_adcs(array<voltage_register_group, BMS::EXTERNAL_ADCS> voltages, uint8_t voltage_number); 
 	void parse_configuration_data_stream(span<uint8_t> data_stream);
@@ -29,7 +29,7 @@ public:
 	BMSH() = default;
 	BMSH(SPI::Peripheral& spi_peripheral);
 
-	LTC6811 external_adcs[EXTERNAL_ADCS];
+	LTC6810 external_adcs[EXTERNAL_ADCS];
 
 
 	uint8_t check_adc_conversion_status();

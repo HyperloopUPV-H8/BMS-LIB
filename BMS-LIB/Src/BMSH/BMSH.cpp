@@ -16,20 +16,20 @@
 BMSH::BMSH(SPI::Peripheral& spi_peripheral) {
 	spi_instance = SPI::inscribe(spi_peripheral);
 
-
-	external_adcs[0] = LTC6811();
-	external_adcs[1] = LTC6811();
-	external_adcs[2] = LTC6811();
-	external_adcs[3] = LTC6811();
-	external_adcs[4] = LTC6811();
+    //Number of LTC6810 to use
+	external_adcs[0] = LTC6810();
+	external_adcs[1] = LTC6810();
+	external_adcs[2] = LTC6810();
+	external_adcs[3] = LTC6810();
+	external_adcs[4] = LTC6810();
 }
 
 void BMSH::initialize() {
-	external_adcs[0].initialize_batteries();
-	external_adcs[1].initialize_batteries();
-	external_adcs[2].initialize_batteries();
-	external_adcs[3].initialize_batteries();
-	external_adcs[4].initialize_batteries();
+	external_adcs[0].initialize();
+	external_adcs[1].initialize();
+	external_adcs[2].initialize();
+	external_adcs[3].initialize();
+	external_adcs[4].initialize();
 }
 
 uint8_t BMSH::check_adc_conversion_status() {
@@ -70,13 +70,13 @@ void BMSH::check_adcs() {
 
 void BMSH::copy_internal_temperature(array<uint16_t, BMS::EXTERNAL_ADCS> temperatures) {
 	for (uint8_t i : iota(0, BMS::EXTERNAL_ADCS)) {
-		external_adcs[i].internal_temperature = (float)temperatures[i] / 75 - 273;
+		external_adcs[i].internal_temperature = (float)temperatures / 75 - 273;
 	}
 }
 
 void BMSH::parse_configuration_data_stream(span<uint8_t> data_stream) {
 	uint8_t offset = 0;
-	for (LTC6811 external_adc : external_adcs) {
+	for (LTC6810 external_adc : external_adcs) {
 		for (bitset<8> data_register : external_adc.peripheral_configuration.register_group) {
 			data_stream[offset] = (uint8_t)data_register.to_ulong(); //TODO: Refactor this, is horrible.
 			offset++;
@@ -84,12 +84,11 @@ void BMSH::parse_configuration_data_stream(span<uint8_t> data_stream) {
 	}
 }
 
-void BMSH::check_batteries(LTC6811& external_adc) {
+void BMSH::check_batteries(LTC6810& external_adc) {
 	uint8_t cell_offset = 0;
-	for (Battery battery : external_adc.batteries) {
-
-		if(not battery.needs_balance()) {
-			cell_offset += 6;
+	
+		if(not external_adc.battery.needs_balance()) {
+			//cell_offset += 6;
 			continue;
 		}
 
@@ -104,19 +103,20 @@ void BMSH::check_batteries(LTC6811& external_adc) {
 			}
 		}
 
-		cell_offset += 6;
-	}
+		//cell_offset += 6;
+	
 }
 
 float BMSH::get_cell(uint8_t cell) {
-	LTC6811& adc = external_adcs[cell/12];
-	Battery& battery = adc.batteries[cell%12/6];
-	return *battery.cells[cell%12%6];
+	//Adjust cells numbers and values
+	LTC6810& adc = external_adcs[cell/6];
+	Battery& battery = adc.battery[cell%6];
+	return *battery.cells[cell%6];
 }
 
 float BMSH::get_gpio(uint8_t gpio) {
-	LTC6811& adc = external_adcs[gpio/4];
-	Battery& battery = adc.batteries[gpio%4/2];
+	LTC6810& adc = external_adcs[gpio/4];
+	Battery& battery = adc.battery[gpio%4/2];
 	if (gpio%4%2 == 0) {
 		return *battery.temperature1;
 	} else {
@@ -126,8 +126,8 @@ float BMSH::get_gpio(uint8_t gpio) {
 
 float BMSH::get_total_voltage() {
 	float total_voltage = 0;
-	for (LTC6811& adc: external_adcs) {
-		for (Battery& battery: adc.batteries) {
+	for (LTC6810& adc: external_adcs) {
+		for (Battery& battery: adc.battery) {
 			if (battery.is_connected) {
 				total_voltage += battery.total_voltage;
 			}

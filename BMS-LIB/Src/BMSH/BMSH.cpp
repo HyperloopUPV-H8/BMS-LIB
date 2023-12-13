@@ -13,23 +13,8 @@
  *              PUBLIC FUNCTIONS
  ***********************************************/
 
-BMSH::BMSH(SPI::Peripheral& spi_peripheral) {
-	spi_instance = SPI::inscribe(spi_peripheral);
-
-    //Number of LTC6810 to use
-	external_adcs[0] = LTC6810();
-	external_adcs[1] = LTC6810();
-	external_adcs[2] = LTC6810();
-	external_adcs[3] = LTC6810();
-	external_adcs[4] = LTC6810();
-}
-
 void BMSH::initialize() {
 	external_adcs[0].initialize();
-	external_adcs[1].initialize();
-	external_adcs[2].initialize();
-	external_adcs[3].initialize();
-	external_adcs[4].initialize();
 }
 
 uint8_t BMSH::check_adc_conversion_status() {
@@ -57,6 +42,13 @@ void BMSH::deactivate_cell_discharging() {
 LTC681X::configuration& BMSH::get_config(uint8_t adc_number) {
 	return external_adcs[adc_number].peripheral_configuration;
 }
+
+BMSH::BMSH(SPI::Peripheral& spi_peripheral) {
+	spi_instance = SPI::inscribe(spi_peripheral);
+
+    //Number of LTC6810 to use
+	external_adcs[0] = LTC6810();
+	}
 
 /************************************************
  *              PRIVATE FUNCTIONS

@@ -1,6 +1,6 @@
 #include "BMS/BMS.hpp"
 
-array<BMS::COMMAND, 4> BMS::cell_voltage_registers = {READ_CELL_VOLTAGE_REGISTER_A, READ_CELL_VOLTAGE_REGISTER_B, READ_CELL_VOLTAGE_REGISTER_C, READ_CELL_VOLTAGE_REGISTER_D};
+array<BMS::COMMAND, 2> BMS::cell_voltage_registers = {READ_CELL_VOLTAGE_REGISTER_A, READ_CELL_VOLTAGE_REGISTER_B};
 
 void BMS::send_command(COMMAND command) {
 	constexpr uint8_t message_size = LTC681X::COMMAND_LENGTH + PEC15::LENGTH;

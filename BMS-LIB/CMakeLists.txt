@@ -20,7 +20,7 @@ add_library(${BMS-LIB} STATIC
   ${SOURCE_CPP}
 )
 
-target_link_libraries(${BMS-LIB} st-lib)
+target_link_libraries(${BMS-LIB} ${ST-LIB_DIR}/build/Debug/lib/libst-lib.a)
 
 target_compile_definitions(${BMS-LIB} PUBLIC
   -DUSE_HAL_DRIVER

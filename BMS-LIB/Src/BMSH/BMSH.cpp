@@ -15,6 +15,7 @@
 
 void BMSH::initialize() {
 	external_adcs[0].initialize();
+	external_adcs[1].initialize();
 }
 
 uint8_t BMSH::check_adc_conversion_status() {
@@ -48,6 +49,7 @@ BMSH::BMSH(SPI::Peripheral& spi_peripheral) {
 
     //Number of LTC6810 to use
 	external_adcs[0] = LTC6810();
+	external_adcs[1] = LTC6810();
 	}
 
 /************************************************

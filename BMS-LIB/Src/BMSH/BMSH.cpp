@@ -15,7 +15,7 @@
 
 void BMSH::initialize() {
 	external_adcs[0].initialize();
-	external_adcs[1].initialize();
+	//external_adcs[1].initialize();
 }
 
 uint8_t BMSH::check_adc_conversion_status() {
@@ -49,7 +49,7 @@ BMSH::BMSH(SPI::Peripheral& spi_peripheral) {
 
     //Number of LTC6810 to use
 	external_adcs[0] = LTC6810();
-	external_adcs[1] = LTC6810();
+	//external_adcs[1] = LTC6810();
 	}
 
 /************************************************
@@ -82,7 +82,7 @@ void BMSH::check_batteries(LTC6810& external_adc) {
 	uint8_t cell_offset = 0;
 	
 		if(not external_adc.battery.needs_balance()) {
-			//cell_offset += 6;
+			cell_offset += 6;
 			return;
 		}
 
@@ -97,7 +97,7 @@ void BMSH::check_batteries(LTC6810& external_adc) {
 			}
 		}
 
-		//cell_offset += 6;
+		cell_offset += 6;
 	
 }
 

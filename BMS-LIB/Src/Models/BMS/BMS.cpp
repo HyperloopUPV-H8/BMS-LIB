@@ -88,7 +88,8 @@ void BMS::update_configuration(){
 void BMS::update_cell_voltages() {
 	start_adc_conversion_all_cells();
 
-	Time::set_timeout(2, [&]() {
+	Time::set_timeout(10, [&]() {
+		wake_up();
 		read_cell_voltages();
 	});
 }

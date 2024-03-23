@@ -22,7 +22,7 @@ using std::views::drop;
 
 class BMS {
 public:
-	static constexpr int EXTERNAL_ADCS = 2; // Was 1;
+	static constexpr int EXTERNAL_ADCS = 1; // Was 1;
 	bool balancing = false;
   int NTC_table[4096] = {
   6154, 5192, 4230, 3768, 3476, 3267, 3106, 

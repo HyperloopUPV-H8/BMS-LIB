@@ -15,7 +15,15 @@
 
 void BMSH::initialize() {
 	external_adcs[0].initialize();
-	//external_adcs[1].initialize();
+	external_adcs[1].initialize();
+	external_adcs[2].initialize();
+	external_adcs[3].initialize();
+	external_adcs[4].initialize();
+	external_adcs[5].initialize();
+	external_adcs[6].initialize();
+	external_adcs[7].initialize();
+	external_adcs[8].initialize();
+	external_adcs[9].initialize();
 }
 
 uint8_t BMSH::check_adc_conversion_status() {
@@ -49,7 +57,15 @@ BMSH::BMSH(SPI::Peripheral& spi_peripheral) {
 
     //Number of LTC6810 to use
 	external_adcs[0] = LTC6810();
-	//external_adcs[1] = LTC6810();
+	external_adcs[1] = LTC6810();
+	external_adcs[2] = LTC6810();
+	external_adcs[3] = LTC6810();
+	external_adcs[4] = LTC6810();
+	external_adcs[5] = LTC6810();
+	external_adcs[6] = LTC6810();
+	external_adcs[7] = LTC6810();
+	external_adcs[8] = LTC6810();
+	external_adcs[9] = LTC6810();
 	}
 
 /************************************************

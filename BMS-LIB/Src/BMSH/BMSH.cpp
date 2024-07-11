@@ -149,17 +149,17 @@ float BMSH::get_total_voltage() {
 
 void BMSH::parse_temperatures(array<voltage_register_group, BMSH::EXTERNAL_ADCS> temperatures_register1, array<voltage_register_group, BMSH::EXTERNAL_ADCS> temperatures_register2) {
 	for (int adc_number : iota(0, EXTERNAL_ADCS)) {
-			int raw_temp = (temperatures_register1[adc_number].voltage1 * 10000) / 16;
-			external_adcs[adc_number].temperatures.voltage1 = NTC_table[raw_temp]*0.1 / 2;
+			float raw_temp = temperatures_register1[adc_number].voltage1;
+			external_adcs[adc_number].temperatures.voltage1 = 0;
 
 			raw_temp = (temperatures_register1[adc_number].voltage2 * 10000) / 16;
-			external_adcs[adc_number].temperatures.voltage2 = NTC_table[raw_temp]*0.1 / 2;
+			external_adcs[adc_number].temperatures.voltage2 = raw_temp;
 
-			raw_temp = (temperatures_register1[adc_number].voltage3 * 10000) / 16;
-			external_adcs[adc_number].temperatures.voltage3 = NTC_table[raw_temp]*0.1 / 2;
+			raw_temp = (temperatures_register2[adc_number].voltage3 * 10000) / 16;
+			external_adcs[adc_number].temperatures.voltage3 = raw_temp;
 
-			raw_temp = (temperatures_register2[adc_number].voltage1 * 10000) / 16;
-			external_adcs[adc_number].temperatures.voltage1 = NTC_table[raw_temp]*0.1 / 2;
+			raw_temp = temperatures_register2[adc_number].voltage1;
+			external_adcs[adc_number].temperatures.voltage1 = raw_temp;
 	}
 }
 

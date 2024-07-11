@@ -14,16 +14,10 @@
  ***********************************************/
 
 void BMSH::initialize() {
-	external_adcs[0].initialize();
-	external_adcs[1].initialize();
-	external_adcs[2].initialize();
-	external_adcs[3].initialize();
-	external_adcs[4].initialize();
-	external_adcs[5].initialize();
-	external_adcs[6].initialize();
-	external_adcs[7].initialize();
-	external_adcs[8].initialize();
-	external_adcs[9].initialize();
+	for(int i = 0; i < BMS::EXTERNAL_ADCS; i++){
+		external_adcs[i].initialize();
+	}
+
 }
 
 uint8_t BMSH::check_adc_conversion_status() {
@@ -56,16 +50,10 @@ BMSH::BMSH(SPI::Peripheral& spi_peripheral) {
 	spi_instance = SPI::inscribe(spi_peripheral);
 
     //Number of LTC6810 to use
-	external_adcs[0] = LTC6810();
-	external_adcs[1] = LTC6810();
-	external_adcs[2] = LTC6810();
-	external_adcs[3] = LTC6810();
-	external_adcs[4] = LTC6810();
-	external_adcs[5] = LTC6810();
-	external_adcs[6] = LTC6810();
-	external_adcs[7] = LTC6810();
-	external_adcs[8] = LTC6810();
-	external_adcs[9] = LTC6810();
+	for(int i = 0; i < BMS::EXTERNAL_ADCS; i++){
+		external_adcs[i] = LTC6810();
+	}
+
 	}
 
 /************************************************
@@ -153,13 +141,13 @@ void BMSH::parse_temperatures(array<voltage_register_group, BMSH::EXTERNAL_ADCS>
 			external_adcs[adc_number].temperatures.voltage1 = 0;
 
 			raw_temp = (temperatures_register1[adc_number].voltage2 * 10000) / 16;
-			external_adcs[adc_number].temperatures.voltage2 = raw_temp * (-795.45) + 1273.9;
+			external_adcs[adc_number].temperatures.voltage2 = raw_temp;
 
 			raw_temp = (temperatures_register2[adc_number].voltage3 * 10000) / 16;
-			external_adcs[adc_number].temperatures.voltage3 = raw_temp * (-795.45) + 1273.9;
+			external_adcs[adc_number].temperatures.voltage3 = raw_temp;
 
 			raw_temp = temperatures_register2[adc_number].voltage1;
-			external_adcs[adc_number].temperatures.voltage1 = raw_temp * (-795.45) + 1273.9;
+			external_adcs[adc_number].temperatures.voltage1 = raw_temp;
 	}
 }
 

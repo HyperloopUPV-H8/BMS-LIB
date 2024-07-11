@@ -153,13 +153,13 @@ void BMSH::parse_temperatures(array<voltage_register_group, BMSH::EXTERNAL_ADCS>
 			external_adcs[adc_number].temperatures.voltage1 = 0;
 
 			raw_temp = (temperatures_register1[adc_number].voltage2 * 10000) / 16;
-			external_adcs[adc_number].temperatures.voltage2 = raw_temp;
+			external_adcs[adc_number].temperatures.voltage2 = raw_temp * (-795.45) + 1273.9;
 
 			raw_temp = (temperatures_register2[adc_number].voltage3 * 10000) / 16;
-			external_adcs[adc_number].temperatures.voltage3 = raw_temp;
+			external_adcs[adc_number].temperatures.voltage3 = raw_temp * (-795.45) + 1273.9;
 
 			raw_temp = temperatures_register2[adc_number].voltage1;
-			external_adcs[adc_number].temperatures.voltage1 = raw_temp;
+			external_adcs[adc_number].temperatures.voltage1 = raw_temp * (-795.45) + 1273.9;
 	}
 }
 

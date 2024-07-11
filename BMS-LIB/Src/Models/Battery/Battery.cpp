@@ -40,6 +40,7 @@ void Battery::update_data() {
 	} else {
 		is_connected = false;
 	}
+	filtered_temp = temp_filter.compute(*temperature1);
 }
 bool Battery::needs_balance() {
 	update_data();

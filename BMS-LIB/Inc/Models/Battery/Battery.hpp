@@ -35,7 +35,7 @@ public:
 
 	float* temperature1;
 	float* temperature2;
-
+	float filtered_temp;
 
 	bool is_balancing = false;
 
@@ -50,6 +50,6 @@ public:
 	bool are_temps_connected()const{return *temperature1 > 0;}
 private:
 	float get_charging_maximum_voltage();
-
+	MovingAverage<10> temp_filter;
 	static const uint16_t soc[901];
 };

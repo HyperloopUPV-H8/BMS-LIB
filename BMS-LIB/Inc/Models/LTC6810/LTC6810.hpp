@@ -20,6 +20,8 @@ public:
 	voltage_register_group cell_voltages[REGISTER_GROUPS];
 	voltage_register_group temperatures;
 	Battery battery;
-
+	bool is_battery_connected()const{
+		return battery.is_adc_connected();
+	}
 	float internal_temperature;
 };

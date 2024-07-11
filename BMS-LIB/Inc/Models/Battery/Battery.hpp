@@ -30,7 +30,7 @@ public:
 	float maximum_cell;
 	float total_voltage;
 	float disbalance;
-	float is_connected;
+	bool is_connected;
 	
 
 	float* temperature1;
@@ -46,7 +46,7 @@ public:
 
 	void update_data();
 	bool needs_balance();
-
+	bool is_adc_connected()const{return is_connected;}
 private:
 	float get_charging_maximum_voltage();
 

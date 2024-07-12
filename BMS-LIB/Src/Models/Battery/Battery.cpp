@@ -35,7 +35,7 @@ void Battery::update_data() {
 	SOC = SOC::calculate(minimum_cell);
 	disbalance = maximum_cell - minimum_cell;
 
-	filtered_temp = temp_filter.compute(*temperature1);
+	filtered_temp = temp_filter.compute(*temperature2);
 }
 bool Battery::needs_balance() {
 	update_data();

@@ -18,7 +18,8 @@ public:
 
 	LTC6810();
 	voltage_register_group cell_voltages[REGISTER_GROUPS];
-	voltage_register_group temperatures;
+	voltage_register_group temperatures1;
+	voltage_register_group temperatures2;
 	Battery battery;
 	bool is_battery_connected()const{
 		return battery.is_adc_connected();

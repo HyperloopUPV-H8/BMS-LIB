@@ -79,9 +79,9 @@ void BMSA::parse_temperatures(array<voltage_register_group, BMSA::EXTERNAL_ADCS>
 	// if(raw_temp == 65535) external_adc.temperatures.voltage1 = -40; 
 	// else external_adc.temperatures.voltage1 = ((1/((log(((resistance * raw_temp) / (adc_res - raw_temp))/resistance)/beta_value) + (1 / (273.15 + nominal_temperature)))) - 273.15) / 2;
 
-	raw_temp = temperatures_register1[0].voltage2 * 10000;
+	/*raw_temp = temperatures_register1[0].voltage2 * 10000;
 	if(raw_temp == 65535) external_adc.temperatures.voltage2 = -40; 
 	else external_adc.temperatures.voltage2 = ((1/((log(((resistance * raw_temp) / (adc_res - raw_temp))/resistance)/beta_value) + (1 / (273.15 + nominal_temperature)))) - 273.15) / 2;
 
-	external_adc.temperatures.voltage1 = external_adc.temperatures.voltage2+0.21+ (std::rand()%100)/100;
+	external_adc.temperatures.voltage1 = external_adc.temperatures.voltage2+0.21+ (std::rand()%100)/100;*/
 }

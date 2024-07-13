@@ -29,8 +29,9 @@ public:
 	}
 	bool are_temps_connected()const{
 		if(finished_zeroing){
-			return *battery.temperature2 > 2.7;
+			return *battery.temperature2 < 2.7;
 		}
+		return true;
 	}
 	bool finished_zeroing{false};
 	float internal_temperature;

@@ -136,7 +136,7 @@ float BMSH::get_total_voltage() {
 
 
 void BMSH::parse_temperatures(array<voltage_register_group, BMSH::EXTERNAL_ADCS> temperatures_register1, array<voltage_register_group, BMSH::EXTERNAL_ADCS> temperatures_register2) {
-	for (int adc_number : iota(0, 1)) {
+	for (int adc_number : iota(0, BMS::EXTERNAL_ADCS)) {
 			float raw_temp = temperatures_register1[adc_number].voltage1;
 			external_adcs[adc_number].temperatures1.voltage1 = raw_temp;
 

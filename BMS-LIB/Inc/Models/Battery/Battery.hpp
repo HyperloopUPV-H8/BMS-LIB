@@ -46,7 +46,12 @@ public:
 
 	void update_data();
 	bool needs_balance();
-	bool is_adc_connected()const{return is_connected;}
+	bool is_adc_connected()const{
+		if((total_voltage < 18  && total_voltage != 0)|| total_voltage > 26){
+			return false;
+		}
+		return true;
+	}
 	bool are_temps_connected()const{return *temperature1 > 0;}
 private:
 	float get_charging_maximum_voltage();

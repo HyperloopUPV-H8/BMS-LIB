@@ -106,7 +106,7 @@ void BMS::start_adc_conversion_temperatures() {
 	send_command(START_ADC_CONVERSION_GPIO_3);
 	send_command(START_ADC_CONVERSION_GPIO_4);
 
-	Time::set_timeout(5, [&]() {
+	Time::set_timeout(2, [&]() {
 		is_converting = false;
 		battery_temperatures_converted = true;
 	});
@@ -115,7 +115,7 @@ void BMS::start_adc_conversion_temperatures() {
 void BMS::update_temperatures() {
 	start_adc_conversion_temperatures();
 
-	Time::set_timeout(6, [&](){
+	Time::set_timeout(3, [&](){
 		read_temperatures();
 	});
 }

@@ -24,5 +24,14 @@ public:
 	bool is_battery_connected()const{
 		return battery.is_adc_connected();
 	}
+	void finish_zeroing(){
+		finished_zeroing = true;
+	}
+	bool are_temps_connected()const{
+		if(finished_zeroing){
+			return *battery.temperature2 > 2.7;
+		}
+	}
+	bool finished_zeroing{false};
 	float internal_temperature;
 };

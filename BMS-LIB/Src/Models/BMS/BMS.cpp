@@ -51,7 +51,7 @@ void BMS::send_receive_command(COMMAND command, span<uint8_t> tx_data, span<uint
 }
 
 void BMS::read_cell_voltages() {
-	if (is_converting or not cells_converted) {
+	if (not cells_converted) {
 		return;
 	}
 
@@ -169,7 +169,7 @@ voltage_register_group BMS::parse_voltage_register(span<uint8_t> voltage_data) {
 
 void BMS::read_temperatures() {
 	if (is_converting or not battery_temperatures_converted) {
-		return;
+		//return;
 	}
 
 	array<voltage_register_group, BMS::EXTERNAL_ADCS> temperatures_register1 = read_voltage_register(READ_AUXILIARY_REGISTER_GROUP_A);

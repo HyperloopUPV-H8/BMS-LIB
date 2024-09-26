@@ -20,7 +20,7 @@ struct voltage_register_group {
 
 class Battery {
 public:
-	static const int CELLS = 6;
+	static constexpr int CELLS = 6;
 	static const int MIN_TEMPERATURE = 0;
 	static const int MAX_TEMPERATURE = 60;
 	static constexpr float MAX_DISBALANCE = 0.2;

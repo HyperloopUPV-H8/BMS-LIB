@@ -531,7 +531,8 @@ public:
 
 		READ_CELL_VOLTAGE_REGISTER_A = 0b0100,
 		READ_CELL_VOLTAGE_REGISTER_B = 0b0110,
-
+		READ_CELL_VOLTAGE_REGISTER_C = 0b1000,
+		READ_CELL_VOLTAGE_REGISTER_D = 0b1010,
 		WRITE_CONFIGURATION_REGISTER_GROUP = 0b1,
 		READ_CONFIGURATION_REGISTER_GROUP = 0b10,
 
@@ -589,7 +590,7 @@ protected:
 	void add_message_data(span<uint8_t> message, span<uint8_t> data);
 	void parse_command(span<uint8_t> tx_message, COMMAND command);
 
-	static array<COMMAND, 2> cell_voltage_registers;
+	static array<COMMAND, 4> cell_voltage_registers;
 	virtual span<COMMAND> get_cell_voltage_registers() = 0;
 	virtual void copy_voltages_to_external_adcs(voltage_register_array voltages, uint8_t voltage_number) = 0; 
 	virtual void parse_configuration_data_stream(span<uint8_t> data_stream) = 0;

@@ -8,6 +8,8 @@
 #include "BMSA/BMSA.hpp"
 #include "ErrorHandler/ErrorHandler.hpp"
 
+
+
 BMSA::BMSA(SPI::Peripheral& spi_peripheral) {
 	spi_instance = SPI::inscribe(spi_peripheral);
 	external_adc = LTC6810();

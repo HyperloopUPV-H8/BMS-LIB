@@ -22,7 +22,7 @@ using std::views::drop;
 
 class BMS {
 public:
-	static constexpr int EXTERNAL_ADCS = 1;
+	static constexpr int EXTERNAL_ADCS = 1; // Was 1;
 	bool balancing = false;
   int NTC_table[4096] = {
   6154, 5192, 4230, 3768, 3476, 3267, 3106, 
@@ -533,7 +533,6 @@ public:
 		READ_CELL_VOLTAGE_REGISTER_B = 0b0110,
 		READ_CELL_VOLTAGE_REGISTER_C = 0b1000,
 		READ_CELL_VOLTAGE_REGISTER_D = 0b1010,
-
 		WRITE_CONFIGURATION_REGISTER_GROUP = 0b1,
 		READ_CONFIGURATION_REGISTER_GROUP = 0b10,
 

@@ -7,8 +7,8 @@
 
 #pragma once
 
-#include "Battery/Battery.hpp"
 #include "LTC681X/LTC681X.hpp"
+#include "Battery/Battery.hpp"
 
 class LTC6810 : public LTC681X {
 public:

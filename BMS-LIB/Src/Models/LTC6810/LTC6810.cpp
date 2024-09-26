@@ -1,7 +1,9 @@
 #include "LTC6810/LTC6810.hpp"
 
-LTC6810::LTC6810() : cell_voltages{ 0 }, temperatures{ 0 } {
+LTC6810::LTC6810():cell_voltages{0},temperatures{0}
+{
     peripheral_configuration = configuration();
+
 }
 
 void LTC6810::initialize() {

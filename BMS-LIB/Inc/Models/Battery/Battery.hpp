@@ -30,12 +30,12 @@ public:
 	float maximum_cell;
 	float total_voltage;
 	float disbalance;
-	float is_connected;
+	bool is_connected;
 	
 
 	float* temperature1;
 	float* temperature2;
-
+	float filtered_temp;
 
 	bool is_balancing = false;
 
@@ -46,9 +46,15 @@ public:
 
 	void update_data();
 	bool needs_balance();
-
+	bool is_adc_connected()const{
+		if((total_voltage < 18  && total_voltage != 0)|| total_voltage > 26){
+			return false;
+		}
+		return true;
+	}
+	bool are_temps_connected()const{return *temperature1 > 0;}
 private:
 	float get_charging_maximum_voltage();
-
+	MovingAverage<50> temp_filter;
 	static const uint16_t soc[901];
 };

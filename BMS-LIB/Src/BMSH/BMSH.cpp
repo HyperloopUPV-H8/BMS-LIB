@@ -14,7 +14,10 @@
  ***********************************************/
 
 void BMSH::initialize() {
-	external_adcs[0].initialize();
+	for(int i = 0; i < BMS::EXTERNAL_ADCS; i++){
+		external_adcs[i].initialize();
+	}
+
 }
 
 uint8_t BMSH::check_adc_conversion_status() {
@@ -47,7 +50,10 @@ BMSH::BMSH(SPI::Peripheral& spi_peripheral) {
 	spi_instance = SPI::inscribe(spi_peripheral);
 
     //Number of LTC6810 to use
-	external_adcs[0] = LTC6810();
+	for(int i = 0; i < BMS::EXTERNAL_ADCS; i++){
+		external_adcs[i] = LTC6810();
+	}
+
 	}
 
 /************************************************
@@ -80,7 +86,7 @@ void BMSH::check_batteries(LTC6810& external_adc) {
 	uint8_t cell_offset = 0;
 	
 		if(not external_adc.battery.needs_balance()) {
-			//cell_offset += 6;
+			cell_offset += 6;
 			return;
 		}
 
@@ -95,7 +101,7 @@ void BMSH::check_batteries(LTC6810& external_adc) {
 			}
 		}
 
-		//cell_offset += 6;
+		cell_offset += 6;
 	
 }
 
@@ -130,18 +136,24 @@ float BMSH::get_total_voltage() {
 
 
 void BMSH::parse_temperatures(array<voltage_register_group, BMSH::EXTERNAL_ADCS> temperatures_register1, array<voltage_register_group, BMSH::EXTERNAL_ADCS> temperatures_register2) {
-	for (int adc_number : iota(0, EXTERNAL_ADCS)) {
-			int raw_temp = (temperatures_register1[adc_number].voltage1 * 10000) / 16;
-			external_adcs[adc_number].temperatures.voltage1 = NTC_table[raw_temp]*0.1 / 2;
+	for (int adc_number : iota(0, BMS::EXTERNAL_ADCS)) {
+			float raw_temp = temperatures_register1[adc_number].voltage1;
+			external_adcs[adc_number].temperatures1.voltage1 = raw_temp;
 
-			raw_temp = (temperatures_register1[adc_number].voltage2 * 10000) / 16;
-			external_adcs[adc_number].temperatures.voltage2 = NTC_table[raw_temp]*0.1 / 2;
+			raw_temp = temperatures_register1[adc_number].voltage2;
+			external_adcs[adc_number].temperatures1.voltage2 = raw_temp;
 
-			raw_temp = (temperatures_register1[adc_number].voltage3 * 10000) / 16;
-			external_adcs[adc_number].temperatures.voltage3 = NTC_table[raw_temp]*0.1 / 2;
+			raw_temp = temperatures_register1[adc_number].voltage3;
+			external_adcs[adc_number].temperatures1.voltage3 = raw_temp;
 
-			raw_temp = (temperatures_register2[adc_number].voltage1 * 10000) / 16;
-			external_adcs[adc_number].temperatures.voltage1 = NTC_table[raw_temp]*0.1 / 2;
+			raw_temp = temperatures_register2[adc_number].voltage1;
+			external_adcs[adc_number].temperatures2.voltage1 = raw_temp;
+
+			raw_temp = temperatures_register2[adc_number].voltage2;
+			external_adcs[adc_number].temperatures2.voltage2 = raw_temp;
+
+			raw_temp = temperatures_register2[adc_number].voltage3;
+			external_adcs[adc_number].temperatures2.voltage3 = raw_temp;
 	}
 }
 

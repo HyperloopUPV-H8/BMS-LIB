@@ -50,7 +50,7 @@ void BMS::send_receive_command(COMMAND command, span<uint8_t> tx_data, span<uint
 }
 
 void BMS::read_cell_voltages() {
-	if (is_converting or not cells_converted) {
+	if (not cells_converted) {
 		return;
 	}
 
@@ -87,7 +87,8 @@ void BMS::update_configuration(){
 void BMS::update_cell_voltages() {
 	start_adc_conversion_all_cells();
 
-	Time::set_timeout(2, [&]() {
+	Time::set_timeout(10, [&]() {
+		wake_up();
 		read_cell_voltages();
 	});
 }
@@ -113,7 +114,7 @@ void BMS::start_adc_conversion_temperatures() {
 void BMS::update_temperatures() {
 	start_adc_conversion_temperatures();
 
-	Time::set_timeout(2, [&](){
+	Time::set_timeout(3, [&](){
 		read_temperatures();
 	});
 }
@@ -167,7 +168,7 @@ voltage_register_group BMS::parse_voltage_register(span<uint8_t> voltage_data) {
 
 void BMS::read_temperatures() {
 	if (is_converting or not battery_temperatures_converted) {
-		return;
+		//return;
 	}
 
 	array<voltage_register_group, BMS::EXTERNAL_ADCS> temperatures_register1 = read_voltage_register(READ_AUXILIARY_REGISTER_GROUP_A);

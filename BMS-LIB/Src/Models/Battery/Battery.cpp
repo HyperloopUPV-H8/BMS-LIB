@@ -35,11 +35,7 @@ void Battery::update_data() {
 	SOC = SOC::calculate(minimum_cell);
 	disbalance = maximum_cell - minimum_cell;
 
-	if (total_voltage > 18 && total_voltage < 26) {
-		is_connected = true;
-	} else {
-		is_connected = false;
-	}
+	filtered_temp = temp_filter.compute(*temperature2);
 }
 bool Battery::needs_balance() {
 	update_data();

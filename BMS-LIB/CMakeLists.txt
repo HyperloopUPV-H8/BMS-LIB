@@ -1,34 +1,88 @@
 cmake_minimum_required (VERSION 3.4)
-project (bms-lib ASM C CXX)
+
+include(arm-none-eabi.cmake)
+
+project (BMS-LIB ASM C CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-set(STLIB_DIR "/opt/ST-LIB")
-set(BMS-LIB bms-lib)
+set(LIBRARY bms-lib)
+
+set(STLIB_DIR "$ENV{STLIB_PATH}")
 
 file(GLOB_RECURSE SOURCE_C ${CMAKE_SOURCE_DIR}/ *.c)
 file(GLOB_RECURSE SOURCE_CPP ${CMAKE_SOURCE_DIR}/ *.cpp)
 file(GLOB_RECURSE SOURCE_H ${CMAKE_SOURCE_DIR}/ *.h)
 file(GLOB_RECURSE SOURCE_HPP ${CMAKE_SOURCE_DIR}/ *.hpp)
 
-add_library(${BMS-LIB} STATIC
+if(${NUCLEO})
+  add_definitions(-DNUCLEO)
+  add_definitions(-DHSE_VALUE=8000000)
+else()
+  add_definitions(-DBOARD)
+  add_definitions(-DHSE_VALUE=25000000)
+endif()
+
+if(${RELEASE} STREQUAL "Release")
+  set(OPTIMIZATION -O3)
+  set(DEBUG_CONFIGURATION -g0)
+  set(STLIB_LIBRARY ${STLIB_DIR}/build/Release)
+elseif(${RELEASE} STREQUAL "ReleaseDebug")
+  set(OPTIMIZATION -O3)
+  set(DEBUG_CONFIGURATION -g3)
+  set(STLIB_LIBRARY ${STLIB_DIR}/build/ReleaseDebug)
+  else()
+  set(OPTIMIZATION -O0)
+  set(DEBUG_CONFIGURATION -g3)
+  set(STLIB_LIBRARY ${STLIB_DIR}/build/Debug)
+endif()
+
+message("\n\nCMAKE:\n")
+message(STATUS "[Debug, Release, ReleaseDebug]: " ${RELEASE})
+message(STATUS "Optimization value: " ${OPTIMIZATION})
+message(STATUS "Debug configuration value: " ${DEBUG_CONFIGURATION})
+message(STATUS "[BOARD, NUCLEO] Config: NUCLEO: " ${NUCLEO})
+
+add_library(${LIBRARY} STATIC
   ${SOURCE_C}
   ${SOURCE_CPP}
   ${SOURCE_H}
   ${SOURCE_CPP}
 )
 
-target_link_libraries(${BMS-LIB} ${ST-LIB_DIR}/build/Debug/lib/libst-lib.a)
+target_link_libraries(${LIBRARY} ${STLIB_LIBRARY}/libst-lib.a)
 
-target_compile_definitions(${BMS-LIB} PUBLIC
+target_compile_definitions(${LIBRARY} PUBLIC
   -DUSE_HAL_DRIVER
   -DSTM32H723xx
   -DDATA_IN_D2_SRAM
 )
 
-target_include_directories(${BMS-LIB} PUBLIC
+target_compile_options(${LIBRARY} PUBLIC
+  -mcpu=cortex-m7
+  -mfpu=fpv5-d16
+  -mfloat-abi=hard
+  -mthumb
+  ${OPTIMIZATION}
+  ${DEBUG_CONFIGURATION}
+  -ffunction-sections
+  -fdata-sections
+  -fno-exceptions
+  -fno-use-cxa-atexit
+  ## disable Warnings for C files, this is Driver code from ST
+  $<$<COMPILE_LANGUAGE:C>:-w>
+  $<$<COMPILE_LANGUAGE:CXX>:-fno-use-cxa-atexit>
+  $<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>
+  $<$<COMPILE_LANGUAGE:CXX>:-Wall>
+  $<$<COMPILE_LANGUAGE:CXX>:-Wpedantic>
+  # $<$<COMPILE_LANGUAGE:CXX>:-Werror>
+  -Wno-pointer-arith
+  --specs=nosys.specs
+)
+
+target_include_directories(${LIBRARY} PUBLIC
   ${STLIB_DIR}/Drivers/CMSIS/Device/ST/STM32H7xx/Include
   ${STLIB_DIR}/Drivers/CMSIS/Include
   ${STLIB_DIR}/Drivers/STM32H7xx_HAL_Driver/Inc
@@ -64,22 +118,4 @@ target_include_directories(${BMS-LIB} PUBLIC
 )
 
 
-target_compile_options(${BMS-LIB} PUBLIC
-  -mcpu=cortex-m7
-  -mfpu=fpv5-d16
-  -mfloat-abi=hard
-  -mthumb
-  
-  -O0
-  -g3
-  -ffunction-sections
-  -fdata-sections
-  -fno-exceptions
-  -fno-use-cxa-atexit
-  -fno-use-cxa-atexit
 
-  -Wall
-  -Wno-pointer-arith
-
-  --specs=nosys.specs
-)

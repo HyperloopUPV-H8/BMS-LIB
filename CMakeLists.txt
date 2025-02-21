@@ -63,7 +63,7 @@ target_compile_options(bms-lib PRIVATE
   -Wno-pointer-arith
 )
 
-target_include_directories(bms-lib PUBLIC
+target_include_directories(bms-lib PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}/Inc
   ${CMAKE_CURRENT_SOURCE_DIR}/Inc/Models

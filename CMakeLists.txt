@@ -1,7 +1,5 @@
 cmake_minimum_required (VERSION 3.5)
 
-include(arm-none-eabi.cmake)
-
 project (BMS-LIB ASM C CXX)
 
 set(CMAKE_CXX_STANDARD 20)

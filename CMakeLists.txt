@@ -70,35 +70,32 @@ target_include_directories(bms-lib PRIVATE
 )
 
 target_include_directories(bms-lib PRIVATE
-  ${STLIB_DIR}/Drivers/CMSIS/Device/ST/STM32H7xx/Include
-  ${STLIB_DIR}/Drivers/CMSIS/Include
-  ${STLIB_DIR}/Drivers/STM32H7xx_HAL_Driver/Inc
-  ${STLIB_DIR}/Drivers/STM32H7xx_HAL_Driver/Inc/Legacy
+  $<$<BOOL:${CMAKE_CROSSCOMPILING}>:${STLIB_DIR}/Drivers/CMSIS/Device/ST/STM32H7xx/Include>
+  $<$<BOOL:${CMAKE_CROSSCOMPILING}>:${STLIB_DIR}/Drivers/CMSIS/Include>
+  $<$<BOOL:${CMAKE_CROSSCOMPILING}>:${STLIB_DIR}/Drivers/STM32H7xx_HAL_Driver/Inc>
+  $<$<BOOL:${CMAKE_CROSSCOMPILING}>:${STLIB_DIR}/Drivers/STM32H7xx_HAL_Driver/Inc/Legacy>
+  $<$<BOOL:${CMAKE_CROSSCOMPILING}>:${STLIB_DIR}/Middlewares/Third_Party/LwIP/src/include>
+  $<$<BOOL:${CMAKE_CROSSCOMPILING}>:${STLIB_DIR}/Middlewares/Third_Party/LwIP/system>
+  $<$<BOOL:${CMAKE_CROSSCOMPILING}>:${STLIB_DIR}/Middlewares/Third_Party/LwIP/src/netif/ppp>
+  $<$<BOOL:${CMAKE_CROSSCOMPILING}>:${STLIB_DIR}/Middlewares/Third_Party/LwIP/src/include/lwip>
+  $<$<BOOL:${CMAKE_CROSSCOMPILING}>:${STLIB_DIR}/Middlewares/Third_Party/LwIP/src/include/lwip/apps>
+  $<$<BOOL:${CMAKE_CROSSCOMPILING}>:${STLIB_DIR}/Middlewares/Third_Party/LwIP/src/include/lwip/priv>
+  $<$<BOOL:${CMAKE_CROSSCOMPILING}>:${STLIB_DIR}/Middlewares/Third_Party/LwIP/src/include/lwip/prot>
+  $<$<BOOL:${CMAKE_CROSSCOMPILING}>:${STLIB_DIR}/Middlewares/Third_Party/LwIP/src/include/netif>
+  $<$<BOOL:${CMAKE_CROSSCOMPILING}>:${STLIB_DIR}/Middlewares/Third_Party/LwIP/src/include/compat>
+  $<$<BOOL:${CMAKE_CROSSCOMPILING}>:${STLIB_DIR}/Middlewares/Third_Party/LwIP/src/include/compat/posix>
+  $<$<BOOL:${CMAKE_CROSSCOMPILING}>:${STLIB_DIR}/Middlewares/Third_Party/LwIP/src/include/compat/posix/arpa>
+  $<$<BOOL:${CMAKE_CROSSCOMPILING}>:${STLIB_DIR}/Middlewares/Third_Party/LwIP/src/include/compat/posix/net>
+  $<$<BOOL:${CMAKE_CROSSCOMPILING}>:${STLIB_DIR}/Middlewares/Third_Party/LwIP/src/include/compat/posix/sys>
+  $<$<BOOL:${CMAKE_CROSSCOMPILING}>:${STLIB_DIR}/Middlewares/Third_Party/LwIP/src/include/compat/stdc>
+  $<$<BOOL:${CMAKE_CROSSCOMPILING}>:${STLIB_DIR}/Middlewares/Third_Party/LwIP/system/arch>
+  $<$<BOOL:${CMAKE_CROSSCOMPILING}>:${STLIB_DIR}/Drivers/BSP/Components>
+  $<$<BOOL:${CMAKE_CROSSCOMPILING}>:${STLIB_DIR}/Drivers/BSP/Components/lan8742>
+  $<$<BOOL:${CMAKE_CROSSCOMPILING}>:${STLIB_DIR}/LWIP/App>
+  $<$<BOOL:${CMAKE_CROSSCOMPILING}>:${STLIB_DIR}/LWIP/Target>
   ${STLIB_DIR}/Inc
-  ${STLIB_DIR}/Inc/HALAL/Models
-  ${STLIB_DIR}/Inc/HALAL/Services
   ${STLIB_DIR}/Inc/ST-LIB_LOW
   ${STLIB_DIR}/Inc/ST-LIB_HIGH
-  ${STLIB_DIR}/Middlewares/Third_Party/LwIP/src/include
-  ${STLIB_DIR}/Middlewares/Third_Party/LwIP/system
-  ${STLIB_DIR}/Middlewares/Third_Party/LwIP/src/netif/ppp
-  ${STLIB_DIR}/Middlewares/Third_Party/LwIP/src/include/lwip
-  ${STLIB_DIR}/Middlewares/Third_Party/LwIP/src/include/lwip/apps
-  ${STLIB_DIR}/Middlewares/Third_Party/LwIP/src/include/lwip/priv
-  ${STLIB_DIR}/Middlewares/Third_Party/LwIP/src/include/lwip/prot
-  ${STLIB_DIR}/Middlewares/Third_Party/LwIP/src/include/netif
-  ${STLIB_DIR}/Middlewares/Third_Party/LwIP/src/include/compat
-  ${STLIB_DIR}/Middlewares/Third_Party/LwIP/src/include/compat/posix
-  ${STLIB_DIR}/Middlewares/Third_Party/LwIP/src/include/compat/posix/arpa
-  ${STLIB_DIR}/Middlewares/Third_Party/LwIP/src/include/compat/posix/net
-  ${STLIB_DIR}/Middlewares/Third_Party/LwIP/src/include/compat/posix/sys
-  ${STLIB_DIR}/Middlewares/Third_Party/LwIP/src/include/compat/stdc
-  ${STLIB_DIR}/Middlewares/Third_Party/LwIP/system/arch
-  ${STLIB_DIR}/Middlewares/Third_Party/
-  ${STLIB_DIR}/Drivers/BSP/Components
-  ${STLIB_DIR}/Drivers/BSP/Components/lan8742
-  ${STLIB_DIR}/LWIP/App
-  ${STLIB_DIR}/LWIP/Target
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}/Inc
   ${CMAKE_CURRENT_SOURCE_DIR}/Inc/Models

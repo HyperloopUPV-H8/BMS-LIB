@@ -13,12 +13,14 @@ set(STLIB_DIR ${CMAKE_CURRENT_LIST_DIR}/deps/ST-LIB)
 option(USE_ETHERNET "Enable ethernet peripheral" OFF)
 option(TARGET_NUCLEO "Targets the STM32H723 Nucleo development board" OFF)
 
+message("About to configure ST-LIB")
 add_subdirectory(${STLIB_DIR})
+message("ST-LIB configured")
 
-file(GLOB_RECURSE SOURCE_C ${CMAKE_SOURCE_DIR}/ *.c)
-file(GLOB_RECURSE SOURCE_CPP ${CMAKE_SOURCE_DIR}/ *.cpp)
-file(GLOB_RECURSE SOURCE_H ${CMAKE_SOURCE_DIR}/ *.h)
-file(GLOB_RECURSE SOURCE_HPP ${CMAKE_SOURCE_DIR}/ *.hpp)
+file(GLOB_RECURSE SOURCE_C ${CMAKE_SOURCE_DIR}/Src/*.c)
+file(GLOB_RECURSE SOURCE_CPP ${CMAKE_SOURCE_DIR}/Src/*.cpp)
+file(GLOB_RECURSE SOURCE_H ${CMAKE_SOURCE_DIR}/Inc/*.h)
+file(GLOB_RECURSE SOURCE_HPP ${CMAKE_SOURCE_DIR}/Inc/*.hpp)
 
 add_library(bms-lib STATIC
   ${SOURCE_C}
@@ -68,15 +70,38 @@ target_include_directories(bms-lib PUBLIC
 )
 
 target_include_directories(bms-lib PRIVATE
-  $<$<BOOL:${CMAKE_CROSSCOMPILING}>:${STLIB_DIR}/Drivers/CMSIS/Device/ST/STM32H7xx/Include>
-  $<$<BOOL:${CMAKE_CROSSCOMPILING}>:${STLIB_DIR}/Drivers/CMSIS/Include>
-  $<$<BOOL:${CMAKE_CROSSCOMPILING}>:${STLIB_DIR}/Drivers/STM32H7xx_HAL_Driver/Inc>
-  $<$<BOOL:${CMAKE_CROSSCOMPILING}>:${STLIB_DIR}/Drivers/STM32H7xx_HAL_Driver/Inc/Legacy>
-  $<$<BOOL:${CMAKE_CROSSCOMPILING}>:${STLIB_DIR}/Drivers/BSP/Components>
-  $<$<BOOL:${CMAKE_CROSSCOMPILING}>:${STLIB_DIR}/Drivers/BSP/Components/lan8742>
+  ${STLIB_DIR}/Drivers/CMSIS/Device/ST/STM32H7xx/Include
+  ${STLIB_DIR}/Drivers/CMSIS/Include
+  ${STLIB_DIR}/Drivers/STM32H7xx_HAL_Driver/Inc
+  ${STLIB_DIR}/Drivers/STM32H7xx_HAL_Driver/Inc/Legacy
   ${STLIB_DIR}/Inc
+  ${STLIB_DIR}/Inc/HALAL/Models
+  ${STLIB_DIR}/Inc/HALAL/Services
   ${STLIB_DIR}/Inc/ST-LIB_LOW
   ${STLIB_DIR}/Inc/ST-LIB_HIGH
+  ${STLIB_DIR}/Middlewares/Third_Party/LwIP/src/include
+  ${STLIB_DIR}/Middlewares/Third_Party/LwIP/system
+  ${STLIB_DIR}/Middlewares/Third_Party/LwIP/src/netif/ppp
+  ${STLIB_DIR}/Middlewares/Third_Party/LwIP/src/include/lwip
+  ${STLIB_DIR}/Middlewares/Third_Party/LwIP/src/include/lwip/apps
+  ${STLIB_DIR}/Middlewares/Third_Party/LwIP/src/include/lwip/priv
+  ${STLIB_DIR}/Middlewares/Third_Party/LwIP/src/include/lwip/prot
+  ${STLIB_DIR}/Middlewares/Third_Party/LwIP/src/include/netif
+  ${STLIB_DIR}/Middlewares/Third_Party/LwIP/src/include/compat
+  ${STLIB_DIR}/Middlewares/Third_Party/LwIP/src/include/compat/posix
+  ${STLIB_DIR}/Middlewares/Third_Party/LwIP/src/include/compat/posix/arpa
+  ${STLIB_DIR}/Middlewares/Third_Party/LwIP/src/include/compat/posix/net
+  ${STLIB_DIR}/Middlewares/Third_Party/LwIP/src/include/compat/posix/sys
+  ${STLIB_DIR}/Middlewares/Third_Party/LwIP/src/include/compat/stdc
+  ${STLIB_DIR}/Middlewares/Third_Party/LwIP/system/arch
+  ${STLIB_DIR}/Middlewares/Third_Party/
+  ${STLIB_DIR}/Drivers/BSP/Components
+  ${STLIB_DIR}/Drivers/BSP/Components/lan8742
+  ${STLIB_DIR}/LWIP/App
+  ${STLIB_DIR}/LWIP/Target
+  ${CMAKE_CURRENT_SOURCE_DIR}
+  ${CMAKE_CURRENT_SOURCE_DIR}/Inc
+  ${CMAKE_CURRENT_SOURCE_DIR}/Inc/Models
 )
 
 if (PROJECT_IS_TOP_LEVEL)

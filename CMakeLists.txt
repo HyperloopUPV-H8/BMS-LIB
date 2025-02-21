@@ -1,0 +1,89 @@
+cmake_minimum_required (VERSION 3.5)
+
+include(arm-none-eabi.cmake)
+
+project (BMS-LIB ASM C CXX)
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+set(STLIB_DIR ${CMAKE_CURRENT_LIST_DIR}/deps/ST-LIB)
+
+option(USE_ETHERNET "Enable ethernet peripheral" OFF)
+option(TARGET_NUCLEO "Targets the STM32H723 Nucleo development board" OFF)
+
+add_subdirectory(${STLIB_DIR})
+
+file(GLOB_RECURSE SOURCE_C ${CMAKE_SOURCE_DIR}/ *.c)
+file(GLOB_RECURSE SOURCE_CPP ${CMAKE_SOURCE_DIR}/ *.cpp)
+file(GLOB_RECURSE SOURCE_H ${CMAKE_SOURCE_DIR}/ *.h)
+file(GLOB_RECURSE SOURCE_HPP ${CMAKE_SOURCE_DIR}/ *.hpp)
+
+add_library(bms-lib STATIC
+  ${SOURCE_C}
+  ${SOURCE_CPP}
+  ${SOURCE_H}
+  ${SOURCE_CPP}
+)
+
+target_link_libraries(bms-lib STATIC st-lib)
+
+target_compile_definitions(bms-lib PRIVATE
+  $<$<BOOL:${CMAKE_CROSSCOMPILING}>:USE_HAL_DRIVER>
+  $<$<BOOL:${CMAKE_CROSSCOMPILING}>:STM32H723xx>
+  DATA_IN_D2_SRAM
+
+  $<$<NOT:$<BOOL:${CMAKE_CROSSCOMPILING}>>:SIM_ON>
+
+  $<$<BOOL:${USE_ETHERNET}>:STLIB_ETH>
+  $<IF:$<BOOL:${TARGET_NUCLEO}>,NUCLEO,BOARD>
+  $<IF:$<BOOL:${TARGET_NUCLEO}>,HSE_VALUE=8000000,HSE_VALUE=25000000>
+)
+
+target_compile_options(bms-lib PRIVATE
+  $<$<BOOL:${CMAKE_CROSSCOMPILING}>:-mcpu=cortex-m7>
+  $<$<BOOL:${CMAKE_CROSSCOMPILING}>:-mfpu=fpv5-d16>
+  $<$<BOOL:${CMAKE_CROSSCOMPILING}>:-mfloat-abi=hard>
+  $<$<BOOL:${CMAKE_CROSSCOMPILING}>:-mthumb>
+  $<$<BOOL:${CMAKE_CROSSCOMPILING}>:-specs=nosys.specs>
+  -ffunction-sections
+  -fdata-sections
+  -fno-exceptions
+  -fno-use-cxa-atexit
+  ## disable Warnings for C files, this is Driver code from ST
+  $<$<COMPILE_LANGUAGE:C>:-w>
+  $<$<COMPILE_LANGUAGE:CXX>:-fno-use-cxa-atexit>
+  $<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>
+  $<$<COMPILE_LANGUAGE:CXX>:-Wall>
+  $<$<COMPILE_LANGUAGE:CXX>:-Wpedantic>
+  # $<$<COMPILE_LANGUAGE:CXX>:-Werror>
+  -Wno-pointer-arith
+)
+
+target_include_directories(bms-lib PUBLIC
+  ${CMAKE_CURRENT_SOURCE_DIR}
+  ${CMAKE_CURRENT_SOURCE_DIR}/Inc
+  ${CMAKE_CURRENT_SOURCE_DIR}/Inc/Models
+)
+
+target_include_directories(bms-lib PRIVATE
+  $<$<BOOL:${CMAKE_CROSSCOMPILING}>:${STLIB_DIR}/Drivers/CMSIS/Device/ST/STM32H7xx/Include>
+  $<$<BOOL:${CMAKE_CROSSCOMPILING}>:${STLIB_DIR}/Drivers/CMSIS/Include>
+  $<$<BOOL:${CMAKE_CROSSCOMPILING}>:${STLIB_DIR}/Drivers/STM32H7xx_HAL_Driver/Inc>
+  $<$<BOOL:${CMAKE_CROSSCOMPILING}>:${STLIB_DIR}/Drivers/STM32H7xx_HAL_Driver/Inc/Legacy>
+  $<$<BOOL:${CMAKE_CROSSCOMPILING}>:${STLIB_DIR}/Drivers/BSP/Components>
+  $<$<BOOL:${CMAKE_CROSSCOMPILING}>:${STLIB_DIR}/Drivers/BSP/Components/lan8742>
+  ${STLIB_DIR}/Inc
+  ${STLIB_DIR}/Inc/ST-LIB_LOW
+  ${STLIB_DIR}/Inc/ST-LIB_HIGH
+)
+
+if (PROJECT_IS_TOP_LEVEL)
+    # Create symlink to compile_commands.json for IDE to pick it up
+    execute_process(
+        COMMAND ${CMAKE_COMMAND} -E create_symlink
+            ${CMAKE_BINARY_DIR}/compile_commands.json
+            ${CMAKE_CURRENT_SOURCE_DIR}/compile_commands.json
+    )
+endif()

@@ -11,14 +11,16 @@ set(STLIB_DIR ${CMAKE_CURRENT_LIST_DIR}/deps/ST-LIB)
 option(USE_ETHERNET "Enable ethernet peripheral" OFF)
 option(TARGET_NUCLEO "Targets the STM32H723 Nucleo development board" OFF)
 
-message("About to configure ST-LIB")
-add_subdirectory(${STLIB_DIR})
-message("ST-LIB configured")
+message("About to configure ST-LIB for BMS-LIB")
+if(NOT TARGET st-lib)
+  add_subdirectory(${STLIB_DIR})
+endif()
+message("ST-LIB configured for BMS-LIB")
 
-file(GLOB_RECURSE SOURCE_C ${CMAKE_SOURCE_DIR}/Src/*.c)
-file(GLOB_RECURSE SOURCE_CPP ${CMAKE_SOURCE_DIR}/Src/*.cpp)
-file(GLOB_RECURSE SOURCE_H ${CMAKE_SOURCE_DIR}/Inc/*.h)
-file(GLOB_RECURSE SOURCE_HPP ${CMAKE_SOURCE_DIR}/Inc/*.hpp)
+file(GLOB_RECURSE SOURCE_C ${CMAKE_CURRENT_SOURCE_DIR}/Src/*.c)
+file(GLOB_RECURSE SOURCE_CPP ${CMAKE_CURRENT_SOURCE_DIR}/Src/*.cpp)
+file(GLOB_RECURSE SOURCE_H ${CMAKE_CURRENT_SOURCE_DIR}/Inc/*.h)
+file(GLOB_RECURSE SOURCE_HPP ${CMAKE_CURRENT_SOURCE_DIR}/Inc/*.hpp)
 
 add_library(bms-lib STATIC
   ${SOURCE_C}

@@ -19,17 +19,13 @@ message("ST-LIB configured for BMS-LIB")
 
 file(GLOB_RECURSE SOURCE_C ${CMAKE_CURRENT_SOURCE_DIR}/Src/*.c)
 file(GLOB_RECURSE SOURCE_CPP ${CMAKE_CURRENT_SOURCE_DIR}/Src/*.cpp)
-file(GLOB_RECURSE SOURCE_H ${CMAKE_CURRENT_SOURCE_DIR}/Inc/*.h)
-file(GLOB_RECURSE SOURCE_HPP ${CMAKE_CURRENT_SOURCE_DIR}/Inc/*.hpp)
 
 add_library(bms-lib STATIC
   ${SOURCE_C}
   ${SOURCE_CPP}
-  ${SOURCE_H}
-  ${SOURCE_CPP}
 )
 
-target_link_libraries(bms-lib STATIC st-lib)
+target_link_libraries(bms-lib PRIVATE st-lib)
 
 target_compile_definitions(bms-lib PRIVATE
   $<$<BOOL:${CMAKE_CROSSCOMPILING}>:USE_HAL_DRIVER>
@@ -61,12 +57,6 @@ target_compile_options(bms-lib PRIVATE
   $<$<COMPILE_LANGUAGE:CXX>:-Wpedantic>
   # $<$<COMPILE_LANGUAGE:CXX>:-Werror>
   -Wno-pointer-arith
-)
-
-target_include_directories(bms-lib PRIVATE
-  ${CMAKE_CURRENT_SOURCE_DIR}
-  ${CMAKE_CURRENT_SOURCE_DIR}/Inc
-  ${CMAKE_CURRENT_SOURCE_DIR}/Inc/Models
 )
 
 target_include_directories(bms-lib PRIVATE
